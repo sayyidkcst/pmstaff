@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#c8102e">
+<title>PM Staff – Orders & Stock</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--red:#c8102e;--red-d:#a00d25;--bg:#f5f0ec;--card:#fff;--ink:#1a1a1a;--mute:#6b5f4e;--line:#eadfd6;--ok:#1a8f4c;--warn:#d98a00;--blue:#1f6feb}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+header{background:var(--red);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(200,16,46,.3)}
+.hd{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px}
+.brand small{display:block;font-weight:500;font-size:11px;opacity:.85}
+.brand .ic{width:38px;height:38px;border-radius:50%;background:#fff;color:var(--red);display:flex;align-items:center;justify-content:center;font-size:18px}
+.rbtn{background:rgba(255,255,255,.18);border:none;color:#fff;padding:9px 14px;border-radius:40px;font-weight:600;font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.rbtn.spin i{animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border-radius:14px;padding:14px;border:1px solid var(--line)}
+.stat b{display:block;font-size:22px;font-weight:800}
+.stat span{font-size:12px;color:var(--mute);font-weight:500}
+.stat.hot b{color:var(--red)}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-weight:700;font-size:14px;cursor:pointer;color:var(--mute);font-family:inherit}
+.tab.on{background:var(--red);border-color:var(--red);color:#fff}
+.tools{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.tools input{flex:1 1 200px;padding:11px 14px;border-radius:12px;border:1.5px solid var(--line);font:inherit;font-size:14px;background:#fff}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;width:100%}
+.chip{white-space:nowrap;padding:7px 14px;border-radius:40px;border:1.5px solid var(--line);background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--mute);font-family:inherit}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.list{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.ord{background:var(--card);border-radius:16px;border:1px solid var(--line);overflow:hidden}
+.oh{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 14px;border-bottom:1px dashed var(--line);gap:8px}
+.oh .no{font-weight:800;font-size:15px}
+.oh .dt{font-size:12px;color:var(--mute)}
+.pill{font-size:12px;font-weight:700;padding:5px 11px;border-radius:40px;white-space:nowrap}
+.pill.p0{background:#fff1d6;color:#9a6200}.pill.p1{background:#e0ecff;color:#1550b3}.pill.p2{background:#ece4ff;color:#5a32b8}.pill.p3{background:#d9f4e4;color:#13703b}.pill.pc{background:#fde0e4;color:var(--red-d)}
+.ob{padding:12px 14px;font-size:14px}
+.cust{font-weight:700}
+.addr{color:var(--mute);font-size:13px;margin:4px 0 8px;white-space:pre-wrap;word-break:break-word}
+.note{background:#fff8e6;border-left:3px solid var(--warn);padding:6px 10px;font-size:13px;border-radius:6px;margin-bottom:8px}
+.it{display:flex;justify-content:space-between;gap:8px;padding:4px 0;font-size:13px}
+.it small{color:var(--mute)}
+.tot{display:flex;justify-content:space-between;font-weight:800;padding-top:8px;margin-top:6px;border-top:1px solid var(--line)}
+.oa{display:flex;gap:6px;padding:0 14px 14px;flex-wrap:wrap}
+.oa a,.oa select,.oa button{flex:1 1 auto;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:600;text-decoration:none;color:var(--ink);text-align:center;cursor:pointer}
+.oa a.wa{background:#25d366;border-color:#25d366;color:#fff}
+.oa a.call{background:var(--blue);border-color:var(--blue);color:#fff}
+.oa select{min-width:100%;border-color:var(--red);color:var(--red-d)}
+.prod{background:var(--card);border-radius:16px;border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:10px}
+.ph{display:flex;gap:12px;align-items:center}
+.ph img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:#f1e8e0;flex:none}
+.ph .noimg{width:56px;height:56px;border-radius:10px;background:#f1e8e0;display:flex;align-items:center;justify-content:center;color:#b9a898;flex:none}
+.ph b{font-size:15px}.ph small{display:block;color:var(--mute);font-size:12px}
+.pr{display:flex;gap:8px}
+.pr label{flex:1;font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.4px}
+.pr input{width:100%;margin-top:3px;padding:10px;border-radius:10px;border:1.5px solid var(--line);font:inherit;font-size:15px;font-weight:600}
+.pf{display:flex;gap:8px;align-items:center}
+.sw{flex:1;padding:10px;border-radius:10px;border:1.5px solid;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.sw.in{background:#e6f7ee;border-color:#9fdcb9;color:var(--ok)}.sw.out{background:#fde8eb;border-color:#f3b3bd;color:var(--red-d)}
+.sv{padding:10px 18px;border-radius:10px;border:none;background:var(--red);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.sv:disabled{opacity:.4;cursor:default}
+.empty{grid-column:1/-1;text-align:center;padding:40px 10px;color:var(--mute)}
+.empty i{font-size:34px;display:block;margin-bottom:10px;opacity:.5}
+.err{background:#fde8eb;color:var(--red-d);padding:12px 14px;border-radius:12px;margin-bottom:12px;font-size:13px;display:none}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);background:#1a1a1a;color:#fff;padding:11px 20px;border-radius:40px;font-size:14px;font-weight:600;opacity:0;transition:.25s;z-index:99;pointer-events:none}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+.addbar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.addbar .cnt{font-size:13px;color:var(--mute);font-weight:600}
+.addbtn{background:var(--red);color:#fff;border:none;padding:11px 18px;border-radius:40px;font:inherit;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;gap:8px;align-items:center;box-shadow:0 4px 10px rgba(200,16,46,.25)}
+.addbtn.ghost{background:#fff;color:var(--red);border:1.5px solid var(--red);box-shadow:none}
+.mini{width:40px;flex:none;padding:10px 0;border-radius:10px;border:1.5px solid var(--line);background:#fff;cursor:pointer;font-size:14px;color:var(--ink)}
+.mini.del{color:var(--red);border-color:#f3b3bd}
+.cu{background:var(--card);border-radius:16px;border:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:8px}
+.cu .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.cu b{font-size:15px}.cu .ph2{font-size:13px;color:var(--mute)}
+.cu .ad{font-size:13px;color:var(--mute);white-space:pre-wrap;word-break:break-word}
+.pill.ap{background:#d9f4e4;color:#13703b}.pill.wt{background:#fff1d6;color:#9a6200}
+.cu .row{display:flex;gap:6px}
+.cu .row button,.cu .row a{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;color:var(--ink)}
+.cu .row .ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.cu .row .no{background:#fff;color:var(--warn);border-color:var(--warn)}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;display:none;align-items:flex-end;justify-content:center}
+.mask.on{display:flex}
+.modal{background:#fff;width:100%;max-width:480px;border-radius:20px 20px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));max-height:92vh;overflow:auto}
+@media(min-width:641px){.mask{align-items:center}.modal{border-radius:20px}}
+.modal h3{font-size:18px;margin-bottom:14px}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.fld input,.fld textarea,.fld select{width:100%;padding:11px 12px;border-radius:10px;border:1.5px solid var(--line);font:inherit;font-size:15px}
+.fld textarea{min-height:80px;resize:vertical}
+.two{display:flex;gap:10px}.two .fld{flex:1}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;font-weight:600;margin-bottom:14px}
+.chk input{width:20px;height:20px;accent-color:var(--red)}
+.imgbox{display:flex;gap:12px;align-items:center}
+.imgprev{width:84px;height:84px;border-radius:12px;background:#f1e8e0;display:flex;align-items:center;justify-content:center;color:#b9a898;font-size:26px;overflow:hidden;flex:none}
+.imgprev img{width:100%;height:100%;object-fit:cover}
+.imgbtns{display:flex;flex-direction:column;gap:6px;flex:1}
+.imgbtns button{padding:10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.pwwrap{position:relative}
+.pwwrap input{padding-right:46px}
+.pwwrap button{position:absolute;right:4px;top:4px;width:38px;height:38px;border:none;background:none;color:var(--mute);font-size:16px;cursor:pointer}
+.mb{display:flex;gap:8px}
+.mb button{flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.mb .pri{background:var(--red);border-color:var(--red);color:#fff}
+.sqlbox{background:#1a1a1a;color:#eee;padding:12px;border-radius:10px;font-size:12px;overflow:auto;white-space:pre;margin-top:8px;font-family:ui-monospace,Menlo,monospace}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}.list{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="hd">
+  <div class="brand"><div class="ic"><i class="fas fa-store"></i></div><div>PM Staff Panel<small>Orders &amp; stock</small></div></div>
+  <button class="rbtn" id="refreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+</div></header>
+
+<main>
+  <div class="err" id="err"></div>
+  <div class="stats">
+    <div class="stat hot"><b id="sNew">0</b><span>New orders</span></div>
+    <div class="stat"><b id="sOpen">0</b><span>In progress</span></div>
+    <div class="stat"><b id="sToday">0</b><span>Today's orders</span></div>
+    <div class="stat"><b id="sOut">0</b><span>Out of stock</span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="orders" type="button"><i class="fas fa-box"></i> Orders</button>
+    <button class="tab" data-tab="products" type="button"><i class="fas fa-bottle-droplet"></i> Products</button>
+    <button class="tab" data-tab="customers" type="button"><i class="fas fa-users"></i> Users</button>
+  </div>
+
+  <section id="paneOrders">
+    <div class="tools">
+      <input id="q" type="search" placeholder="Search name, phone or order no.">
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="list" id="orders"><div class="empty"><i class="fas fa-spinner fa-spin"></i>Loading orders...</div></div>
+  </section>
+
+  <section id="paneProducts" style="display:none">
+    <div class="addbar"><span class="cnt" id="prodCnt"></span><button class="addbtn" id="addProdBtn" type="button"><i class="fas fa-plus"></i> Add product</button></div>
+    <div class="list" id="products"><div class="empty"><i class="fas fa-spinner fa-spin"></i>Loading products...</div></div>
+  </section>
+  <section id="paneCustomers" style="display:none">
+    <div class="addbar"><span class="cnt" id="custCnt"></span>
+      <span style="display:flex;gap:8px;flex-wrap:wrap"><button class="addbtn ghost" id="importBtn" type="button"><i class="fas fa-file-import"></i> Import from orders</button><button class="addbtn" id="addCustBtn" type="button"><i class="fas fa-user-plus"></i> Add user</button></span></div>
+    <div class="tools">
+      <input id="cq" type="search" placeholder="Search name, phone or address">
+      <div class="chips" id="cchips"></div>
+    </div>
+    <div class="list" id="customers"><div class="empty"><i class="fas fa-spinner fa-spin"></i>Loading users...</div></div>
+  </section>
+</main>
+
+<!-- product modal -->
+<div class="mask" id="pmask"><div class="modal">
+  <h3 id="pTitle">Add product</h3>
+  <div class="fld"><label>Product name</label><input id="pName" placeholder="e.g. PM Face Oil"></div>
+  <div class="fld"><label>Size</label><input id="pSize" placeholder="e.g. 30 ml"></div>
+  <div class="two"><div class="fld"><label>Price (₹)</label><input id="pPrice" type="number" min="0" inputmode="numeric"></div>
+  <div class="fld"><label>MRP (₹)</label><input id="pMrp" type="number" min="0" inputmode="numeric"></div></div>
+  <div class="fld"><label>Product image</label>
+    <div class="imgbox"><div class="imgprev" id="pPrev"><i class="fas fa-image"></i></div>
+      <div class="imgbtns"><button type="button" id="pPick"><i class="fas fa-upload"></i> Upload image</button><button type="button" id="pClear" style="display:none"><i class="fas fa-xmark"></i> Remove</button></div></div>
+    <input id="pFile" type="file" accept="image/*" style="display:none"></div>
+  <label class="chk"><input type="checkbox" id="pStock" checked> In stock</label>
+  <div class="mb"><button type="button" id="pCancel">Cancel</button><button type="button" class="pri" id="pSave">Save product</button></div>
+</div></div>
+
+<!-- user modal -->
+<div class="mask" id="cmask"><div class="modal">
+  <h3 id="cTitle">Add user</h3>
+  <div class="fld"><label>Full name</label><input id="cName"></div>
+  <div class="fld"><label>Mobile number</label><input id="cPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit number"></div>
+  <div class="fld"><label id="cPwdLbl">Password</label>
+    <div class="pwwrap"><input id="cPwd" type="password" autocomplete="new-password" placeholder="At least 6 characters"><button type="button" id="cEye" aria-label="Show password"><i class="fas fa-eye"></i></button></div>
+    <small id="cPwdHint" style="color:var(--mute);font-size:12px"></small></div>
+  <div class="fld"><label>Address</label><textarea id="cAddr"></textarea></div>
+  <label class="chk"><input type="checkbox" id="cOk"> Approved</label>
+  <div class="mb"><button type="button" id="cCancel">Cancel</button><button type="button" class="pri" id="cSave">Save user</button></div>
+</div></div>
+<div id="toast"></div>
+
+<script>
+// Same Supabase project as the store page
+const SUPABASE_URL = 'https://ithzvaxktawuvvyfeofs.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_iWIUJsB1qDeggrFYBxBzVA_x7tloMm3';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const STATUSES = ['Pending','Confirmed','Shipped','Delivered','Cancelled'];
+let orders = [], products = [], filter = 'All';
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => '₹' + (Number(n) || 0).toLocaleString('en-IN');
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2200)}
+function showErr(m){const e=$('err');e.innerHTML=m;e.style.display=m?'block':'none'}
+
+function stepOf(st){
+  const t=String(st||'Pending');
+  if(/cancel|reject/i.test(t))return 'c';
+  if(/deliver|complete|done/i.test(t))return 3;
+  if(/ship|dispatch|out for/i.test(t))return 2;
+  if(/confirm|process|accept|pack|paid/i.test(t))return 1;
+  return 0;
+}
+function normStatus(st){const s=stepOf(st);return s==='c'?'Cancelled':STATUSES[s]}
+function phoneDigits(p){let d=String(p||'').replace(/\D/g,'');if(d.length===10)d='91'+d;return d}
+
+async function loadOrders(){
+  const {data,error}=await db.from('orders').select('*').order('created_at',{ascending:false}).limit(300);
+  if(error){console.error(error);showErr('<b>Could not load orders:</b> '+esc(error.message)+'<br>If this says "permission denied" or the list is empty, add a Supabase policy that lets staff read/update the <code>orders</code> table (see notes).');orders=[];}
+  else{orders=data||[];}
+  renderOrders();stats();
+}
+async function loadProducts(){
+  const {data,error}=await db.from('products').select('*').order('price',{ascending:true});
+  if(error){console.error(error);showErr('<b>Could not load products:</b> '+esc(error.message));products=[];}
+  else products=data||[];
+  renderProducts();stats();
+}
+
+function stats(){
+  const today=new Date().toDateString();
+  $('sNew').textContent=orders.filter(o=>stepOf(o.status)===0).length;
+  $('sOpen').textContent=orders.filter(o=>[1,2].includes(stepOf(o.status))).length;
+  $('sToday').textContent=orders.filter(o=>o.created_at&&new Date(o.created_at).toDateString()===today).length;
+  $('sOut').textContent=products.filter(p=>!p.in_stock).length;
+}
+
+function renderChips(){
+  const all=['All',...STATUSES];
+  $('chips').innerHTML=all.map(s=>{
+    const n=s==='All'?orders.length:orders.filter(o=>normStatus(o.status)===s).length;
+    return `<button class="chip ${filter===s?'on':''}" data-f="${s}" type="button">${s} (${n})</button>`;
+  }).join('');
+}
+
+function renderOrders(){
+  renderChips();
+  const q=$('q').value.trim().toLowerCase();
+  const list=orders.filter(o=>{
+    if(filter!=='All'&&normStatus(o.status)!==filter)return false;
+    if(!q)return true;
+    const ref=String(o.id==null?'':o.id).slice(-6).toLowerCase();
+    return [o.customer_name,o.customer_phone,ref].some(v=>String(v||'').toLowerCase().includes(q));
+  });
+  if(!list.length){$('orders').innerHTML='<div class="empty"><i class="fas fa-inbox"></i>No orders here</div>';return;}
+  $('orders').innerHTML=list.map(o=>{
+    let items=o.order_items;
+    if(typeof items==='string'){try{items=JSON.parse(items)}catch(e){items=[]}}
+    if(!Array.isArray(items))items=[];
+    const rows=items.map(i=>`<div class="it"><span>${esc(i.name||i.size||'Item')} <small>${i.name&&i.size?esc(i.size)+' × ':'× '}${esc(i.qty)}</small></span><span>${Number(i.price)?money(Number(i.price)*(Number(i.qty)||1)):''}</span></div>`).join('');
+    const d=o.created_at?new Date(o.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}):'';
+    const st=normStatus(o.status), s=stepOf(o.status);
+    const ref=String(o.id==null?'':o.id).slice(-6).toUpperCase();
+    const ph=phoneDigits(o.customer_phone);
+    const msg=encodeURIComponent(`Hello ${o.customer_name||''}, this is PM Handmade Cosmetics regarding your order #${ref}. Status: ${st}.`);
+    return `<div class="ord">
+      <div class="oh"><div><div class="no">Order #${esc(ref)}</div><div class="dt">${esc(d)}</div></div><span class="pill p${s}">${esc(st)}</span></div>
+      <div class="ob">
+        <div class="cust">${esc(o.customer_name||'Customer')} · ${esc(o.customer_phone||'')}</div>
+        <div class="addr">${esc(o.customer_address||'')}</div>
+        ${o.customer_notes?`<div class="note"><i class="fas fa-note-sticky"></i> ${esc(o.customer_notes)}</div>`:''}
+        ${rows}
+        <div class="tot"><span>Total</span><span>${money(o.total_amount)}</span></div>
+      </div>
+      <div class="oa">
+        <a class="call" href="tel:+${ph}"><i class="fas fa-phone"></i> Call</a>
+        <a class="wa" href="https://wa.me/${ph}?text=${msg}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+        <select data-oid="${esc(o.id)}">${STATUSES.map(x=>`<option ${x===st?'selected':''}>${x}</option>`).join('')}</select>
+      </div></div>`;
+  }).join('');
+}
+
+function renderProducts(){
+  $('prodCnt').textContent=products.length+' products';
+  if(!products.length){$('products').innerHTML='<div class="empty"><i class="fas fa-box-open"></i>No products found</div>';return;}
+  $('products').innerHTML=products.map(p=>{
+    const img=p.image_url||p.image||p.img||'';
+    return `<div class="prod" data-pid="${esc(p.id)}">
+      <div class="ph">${img?`<img src="${esc(img)}" alt="" loading="lazy">`:'<div class="noimg"><i class="fas fa-image"></i></div>'}
+        <div><b>${esc(p.name)}</b><small>${esc(p.size||'')}</small></div></div>
+      <div class="pr">
+        <label>Price (₹)<input type="number" min="0" inputmode="numeric" class="f-price" value="${Number(p.price)||0}"></label>
+        <label>MRP (₹)<input type="number" min="0" inputmode="numeric" class="f-mrp" value="${p.mrp==null?'':Number(p.mrp)}"></label>
+      </div>
+      <div class="pf">
+        <button class="sw ${p.in_stock?'in':'out'}" data-stock type="button">${p.in_stock?'<i class="fas fa-check"></i> In stock':'<i class="fas fa-ban"></i> Out of stock'}</button>
+        <button class="sv" data-save type="button">Save</button>
+        <button class="mini" data-edit type="button" title="Edit"><i class="fas fa-pen"></i></button>
+        <button class="mini del" data-del type="button" title="Delete"><i class="fas fa-trash"></i></button>
+      </div></div>`;
+  }).join('');
+}
+
+// ---- actions ----
+$('orders').addEventListener('change',async e=>{
+  const sel=e.target.closest('select[data-oid]');if(!sel)return;
+  const id=sel.dataset.oid,val=sel.value;
+  sel.disabled=true;
+  const {error}=await db.from('orders').update({status:val}).eq('id',id);
+  sel.disabled=false;
+  if(error){console.error(error);toast('Could not update – check permissions');loadOrders();return;}
+  const o=orders.find(x=>String(x.id)===String(id));if(o)o.status=val;
+  toast('Status: '+val);renderOrders();stats();
+});
+
+$('products').addEventListener('click',async e=>{
+  const card=e.target.closest('.prod');if(!card)return;
+  const id=card.dataset.pid;
+  const p=products.find(x=>String(x.id)===String(id));if(!p)return;
+  if(e.target.closest('[data-stock]')){
+    const next=!p.in_stock;
+    const {error}=await db.from('products').update({in_stock:next}).eq('id',id);
+    if(error){console.error(error);toast('Could not update – check permissions');return;}
+    p.in_stock=next;toast(next?'Marked in stock':'Marked out of stock');renderProducts();stats();
+  }
+  if(e.target.closest('[data-edit]')){openProd(p);return;}
+  if(e.target.closest('[data-del]')){
+    if(!confirm('Delete "'+p.name+'"? This cannot be undone.'))return;
+    const {error}=await db.from('products').delete().eq('id',id);
+    if(error){console.error(error);toast('Could not delete – check permissions');return;}
+    products=products.filter(x=>String(x.id)!==String(id));toast('Product deleted');renderProducts();stats();return;
+  }
+  if(e.target.closest('[data-save]')){
+    const price=Number(card.querySelector('.f-price').value);
+    const mrpRaw=card.querySelector('.f-mrp').value;
+    if(!(price>=0)){toast('Enter a valid price');return;}
+    const upd={price};if(mrpRaw!=='')upd.mrp=Number(mrpRaw);
+    const btn=e.target.closest('[data-save]');btn.disabled=true;
+    const {error}=await db.from('products').update(upd).eq('id',id);
+    btn.disabled=false;
+    if(error){console.error(error);toast('Could not save – check permissions');return;}
+    Object.assign(p,upd);toast('Saved');
+  }
+});
+
+$('chips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;filter=c.dataset.f;renderOrders()});
+$('q').addEventListener('input',renderOrders);
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  $('paneOrders').style.display=t.dataset.tab==='orders'?'':'none';
+  $('paneProducts').style.display=t.dataset.tab==='products'?'':'none';
+  $('paneCustomers').style.display=t.dataset.tab==='customers'?'':'none';
+}));
+
+// ---- product add / edit modal ----
+let editingProd=null,pImgUrl=null,pImgBlob=null;
+function openProd(p){
+  editingProd=p||null;
+  $('pTitle').textContent=p?'Edit product':'Add product';
+  $('pName').value=p?p.name||'':'';$('pSize').value=p?p.size||'':'';
+  $('pPrice').value=p?p.price:'';$('pMrp').value=p&&p.mrp!=null?p.mrp:'';
+  pImgUrl=p?(p.image_url||null):null;pImgBlob=null;$('pFile').value='';showPrev(pImgUrl);
+  $('pStock').checked=p?!!p.in_stock:true;
+  $('pmask').classList.add('on');
+}
+function showPrev(src){
+  $('pPrev').innerHTML=src?`<img src="${esc(src)}" alt="">`:'<i class="fas fa-image"></i>';
+  $('pPick').innerHTML='<i class="fas fa-upload"></i> '+(src?'Change image':'Upload image');
+  $('pClear').style.display=src?'':'none';
+}
+// shrink the photo before upload (max 1000px, JPEG) so the store loads fast
+function compressImage(file){
+  return new Promise((res,rej)=>{
+    const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{
+      const m=1000,r=Math.min(1,m/Math.max(img.width,img.height));
+      const c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);
+      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);c.toBlob(b=>b?res(b):rej(new Error('Could not process image')),'image/jpeg',0.86);
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('Not a valid image'))};
+    img.src=url;
+  });
+}
+$('pPick').addEventListener('click',()=>$('pFile').click());
+$('pFile').addEventListener('change',async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{pImgBlob=await compressImage(f);showPrev(URL.createObjectURL(pImgBlob));}
+  catch(err){toast(err.message);pImgBlob=null;}
+});
+$('pClear').addEventListener('click',()=>{pImgBlob=null;pImgUrl=null;$('pFile').value='';showPrev(null)});
+function closeProd(){$('pmask').classList.remove('on')}
+$('addProdBtn').addEventListener('click',()=>openProd(null));
+$('pCancel').addEventListener('click',closeProd);
+$('pmask').addEventListener('click',e=>{if(e.target===$('pmask'))closeProd()});
+$('pSave').addEventListener('click',async()=>{
+  const name=$('pName').value.trim(),size=$('pSize').value.trim(),price=Number($('pPrice').value);
+  if(!name){toast('Enter product name');return;}
+  if($('pPrice').value===''||!(price>=0)){toast('Enter a valid price');return;}
+  const b=$('pSave');b.disabled=true;
+  let image_url=pImgUrl;
+  if(pImgBlob){
+    b.textContent='Uploading image...';
+    const path='p_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+    const up=await db.storage.from('product-images').upload(path,pImgBlob,{contentType:'image/jpeg',upsert:false});
+    b.textContent='Save product';
+    if(up.error){b.disabled=false;console.error(up.error);toast('Image upload failed – run the storage SQL (see notes)');return;}
+    image_url=db.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+  }
+  const row={name,size,price,mrp:$('pMrp').value===''?null:Number($('pMrp').value),image_url,in_stock:$('pStock').checked};
+  const q=editingProd?db.from('products').update(row).eq('id',editingProd.id):db.from('products').insert([row]);
+  const {error}=await q;b.disabled=false;
+  if(error){console.error(error);toast('Could not save – '+(error.message||'check permissions'));return;}
+  closeProd();toast(editingProd?'Product updated':'Product added');loadProducts();
+});
+
+// ---- users (customers table) ----
+const CUST_SQL=`create table if not exists customers (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  phone text,
+  address text,
+  approved boolean not null default false,
+  created_at timestamptz default now()
+);
+alter table customers enable row level security;
+create policy "staff all" on customers for all using (true) with check (true);`;
+let customers=[],cfilter='All',editingCust=null,custReady=true;
+async function loadCustomers(){
+  const {data,error}=await db.from('customers').select('*').order('created_at',{ascending:false}).limit(500);
+  if(error){
+    console.error(error);custReady=false;customers=[];
+    $('customers').innerHTML='<div class="empty" style="text-align:left"><i class="fas fa-database" style="text-align:center"></i><b>Users table not ready:</b> '+esc(error.message)+'<br><br>Run this once in Supabase → SQL Editor, then tap Refresh:<div class="sqlbox">'+esc(CUST_SQL)+'</div></div>';
+    $('custCnt').textContent='';$('cchips').innerHTML='';return;
+  }
+  custReady=true;customers=data||[];renderCustomers();
+}
+function renderCustomers(){
+  if(!custReady)return;
+  const nWait=customers.filter(c=>!c.approved).length,nOk=customers.length-nWait;
+  $('custCnt').textContent=customers.length+' users · '+nWait+' waiting';
+  $('cchips').innerHTML=[['All',customers.length],['Waiting',nWait],['Approved',nOk]].map(([k,n])=>`<button class="chip ${cfilter===k?'on':''}" data-cf="${k}" type="button">${k} (${n})</button>`).join('');
+  const q=$('cq').value.trim().toLowerCase();
+  const list=customers.filter(c=>{
+    if(cfilter==='Waiting'&&c.approved)return false;
+    if(cfilter==='Approved'&&!c.approved)return false;
+    return !q||[c.name,c.phone,c.address].some(v=>String(v||'').toLowerCase().includes(q));
+  });
+  if(!list.length){$('customers').innerHTML='<div class="empty"><i class="fas fa-user-slash"></i>No users here</div>';return;}
+  $('customers').innerHTML=list.map(c=>{
+    const ph=phoneDigits(c.phone);
+    return `<div class="cu" data-cid="${esc(c.id)}">
+      <div class="top"><div><b>${esc(c.name||'Unnamed')}</b><div class="ph2">${esc(c.phone||'')}</div></div><span class="pill ${c.approved?'ap':'wt'}">${c.approved?'Approved':'Waiting'}</span></div>
+      ${c.address?`<div class="ad">${esc(c.address)}</div>`:''}
+      <div class="row">
+        <button class="${c.approved?'no':'ok'}" data-appr type="button">${c.approved?'<i class="fas fa-ban"></i> Unapprove':'<i class="fas fa-check"></i> Approve'}</button>
+        ${ph?`<a href="tel:+${ph}"><i class="fas fa-phone"></i></a>`:''}
+        <button data-cedit type="button"><i class="fas fa-pen"></i> Edit</button>
+        <button data-cdel type="button" style="color:var(--red);border-color:#f3b3bd"><i class="fas fa-trash"></i></button>
+      </div></div>`;
+  }).join('');
+}
+$('customers').addEventListener('click',async e=>{
+  const card=e.target.closest('.cu');if(!card)return;
+  const id=card.dataset.cid,c=customers.find(x=>String(x.id)===String(id));if(!c)return;
+  if(e.target.closest('[data-appr]')){
+    const next=!c.approved;
+    const {error}=await db.from('customers').update({approved:next}).eq('id',id);
+    if(error){console.error(error);toast('Could not update – check permissions');return;}
+    c.approved=next;toast(next?'User approved':'Approval removed');renderCustomers();
+  }
+  if(e.target.closest('[data-cedit]'))openCust(c);
+  if(e.target.closest('[data-cdel]')){
+    if(!confirm('Delete user "'+(c.name||'')+'" and their store login? They will be able to sign up again as a new user.'))return;
+    const {error}=await db.from('customers').delete().eq('id',id);
+    if(error){console.error(error);toast('Could not delete – check permissions');return;}
+    customers=customers.filter(x=>String(x.id)!==String(id));renderCustomers();
+    // also remove the login so the number is free to register again
+    const rp=await db.rpc('staff_delete_user',{p_id:c.id,p_phone:String(c.phone||'').replace(/\D/g,'').slice(-10)||null});
+    if(rp.error){console.error(rp.error);toast(/function|schema cache|not find/i.test(rp.error.message)?'Removed from list, but login kept – run the "delete user" SQL in Supabase':'Removed from list, login not deleted – '+rp.error.message);}
+    else toast('User and login deleted');
+  }
+});
+$('cchips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;cfilter=c.dataset.cf;renderCustomers()});
+$('cq').addEventListener('input',renderCustomers);
+function openCust(c){
+  editingCust=c||null;
+  $('cTitle').textContent=c?'Edit user':'Add user';
+  $('cName').value=c?c.name||'':'';$('cPhone').value=c?c.phone||'':'';
+  $('cAddr').value=c?c.address||'':'';$('cOk').checked=c?!!c.approved:false;
+  $('cPwd').value='';$('cPwd').type='password';
+  $('cPhone').readOnly=!!c;
+  $('cPwdLbl').textContent=c?'New password (optional)':'Password';
+  $('cPwdHint').textContent=c?'Leave blank to keep the current password. Mobile number is the login id and cannot be changed here.':'The user logs in on the store with this mobile number and password.';
+  $('cmask').classList.add('on');
+}
+function closeCust(){$('cmask').classList.remove('on')}
+$('addCustBtn').addEventListener('click',()=>{if(!custReady){toast('Create the users table first');return;}openCust(null)});
+$('cCancel').addEventListener('click',closeCust);
+$('cmask').addEventListener('click',e=>{if(e.target===$('cmask'))closeCust()});
+$('cPhone').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,10)});
+$('cEye').addEventListener('click',()=>{const i=$('cPwd');i.type=i.type==='password'?'text':'password'});
+
+// separate client so creating a login never signs this browser in as that user
+const authDb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+const AUTH_EMAIL_DOMAIN='kcst.com';
+// returns {id} or {error}
+async function createLogin(phone,password,name,address){
+  const {data,error}=await authDb.auth.signUp({email:phone+'@'+AUTH_EMAIL_DOMAIN,password,options:{data:{full_name:name,phone,address:address||''}}});
+  if(error)return {error:/already|registered/i.test(error.message)?'This mobile number already has a login. Use Edit to change its password.':error.message};
+  if(!data.user||(data.user.identities&&data.user.identities.length===0))return {error:'This mobile number already has a login. Use Edit to change its password.'};
+  return {id:data.user.id};
+}
+const PWD_SQL_MSG='Password function missing – run the "staff password" SQL in Supabase first.';
+
+$('cSave').addEventListener('click',async()=>{
+  const name=$('cName').value.trim(),phone=$('cPhone').value.trim(),pwd=$('cPwd').value,address=$('cAddr').value.trim();
+  if(!name){toast('Enter name');return;}
+  if(!editingCust){
+    if(!/^[6-9]\d{9}$/.test(phone)){toast('Enter a valid 10-digit mobile number');return;}
+    if(pwd.length<6){toast('Password must be at least 6 characters');return;}
+    if(customers.some(c=>String(c.phone||'').slice(-10)===phone)){toast('This number is already in the list – use Edit');return;}
+  }else{
+    if(pwd&&pwd.length<6){toast('Password must be at least 6 characters');return;}
+    if(pwd&&!/^[6-9]\d{9}$/.test(phone)){toast('Add a valid mobile number before setting a password');return;}
+  }
+  const b=$('cSave');b.disabled=true;b.textContent='Saving...';
+  const done=()=>{b.disabled=false;b.textContent='Save user'};
+  try{
+    const approved=$('cOk').checked;
+    if(!editingCust){
+      const r=await createLogin(phone,pwd,name,address);
+      if(r.error){toast(r.error);return;}
+      const {error}=await db.from('customers').upsert([{id:r.id,name,phone,address:address||null,approved}],{onConflict:'id'});
+      if(error){console.error(error);toast('Login created but list save failed – '+error.message);return;}
+      closeCust();toast('User added with password');loadCustomers();return;
+    }
+    // edit
+    const {error}=await db.from('customers').update({name,address:address||null,approved}).eq('id',editingCust.id);
+    if(error){console.error(error);toast('Could not save – '+(error.message||'check permissions'));return;}
+    let msg='User updated';
+    if(/^[6-9]\d{9}$/.test(phone)){
+      const rp=await db.rpc('staff_save_user_auth',{p_phone:phone,p_password:pwd||null,p_name:name,p_address:address||null});
+      if(rp.error){console.error(rp.error);if(pwd){toast(/function|schema cache|not find/i.test(rp.error.message)?PWD_SQL_MSG:'Password not changed – '+rp.error.message);loadCustomers();return;}}
+      else if(!rp.data&&pwd){
+        const r=await createLogin(phone,pwd,name,address);
+        if(r.error){toast('Saved, but login not created – '+r.error);loadCustomers();return;}
+        msg='User updated, login created';
+      }else if(pwd)msg='User updated, password changed';
+    }
+    closeCust();toast(msg);loadCustomers();
+  }finally{done();}
+});
+$('importBtn').addEventListener('click',async()=>{
+  if(!custReady){toast('Create the users table first');return;}
+  const have=new Set(customers.map(c=>String(c.phone||'').slice(-10)));
+  const seen=new Map();
+  orders.forEach(o=>{const ph=String(o.customer_phone||'').replace(/\D/g,'').slice(-10);
+    if(ph.length===10&&!have.has(ph)&&!seen.has(ph))seen.set(ph,{name:o.customer_name||'Customer',phone:ph,address:o.customer_address||null,approved:false});});
+  if(!seen.size){toast('No new customers in orders');return;}
+  if(!confirm('Add '+seen.size+' customers from past orders (as waiting)?'))return;
+  const {error}=await db.from('customers').insert([...seen.values()]);
+  if(error){console.error(error);toast('Import failed – '+error.message);return;}
+  toast(seen.size+' users imported');loadCustomers();
+});
+
+async function refresh(){
+  const b=$('refreshBtn');b.classList.add('spin');showErr('');
+  await Promise.all([loadOrders(),loadProducts(),loadCustomers()]);
+  b.classList.remove('spin');
+}
+$('refreshBtn').addEventListener('click',refresh);
+refresh();
+setInterval(()=>{if(document.visibilityState==='visible')loadOrders()},60000);
+</script>
+</body>
+</html>
