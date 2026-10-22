@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#c8102e">
+<link rel="manifest" href="staff-manifest.json">
+<link rel="apple-touch-icon" href="staff-icon-192.png">
 <title>PM Staff – Orders & Stock</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -35,7 +37,7 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;width:100%}
 .chip{white-space:nowrap;padding:7px 14px;border-radius:40px;border:1.5px solid var(--line);background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--mute);font-family:inherit}
 .chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
-.list{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.list{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))}
 .ord{background:var(--card);border-radius:16px;border:1px solid var(--line);overflow:hidden}
 .oh{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 14px;border-bottom:1px dashed var(--line);gap:8px}
 .oh .no{font-weight:800;font-size:15px}
@@ -107,7 +109,38 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .pwwrap{position:relative}
 .pwwrap input{padding-right:46px}
 .pwwrap button{position:absolute;right:4px;top:4px;width:38px;height:38px;border:none;background:none;color:var(--mute);font-size:16px;cursor:pointer}
+.tabs{overflow-x:auto}
+.tab{flex:1 0 auto;padding:11px 16px;white-space:nowrap}
+.hbtns{display:flex;gap:6px;align-items:center}
+.rbtn.sq{padding:9px 12px}
+#login{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;align-items:center;justify-content:center;padding:20px}
+#login.on{display:flex}
+.lcard{background:#fff;border-radius:20px;padding:28px 22px;width:100%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,.12);border:1px solid var(--line)}
+.lcard .ic{width:56px;height:56px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px}
+.lcard h2{text-align:center;font-size:20px;margin-bottom:4px}
+.lcard p{text-align:center;color:var(--mute);font-size:13px;margin-bottom:18px}
+.lerr{color:var(--red-d);font-size:13px;font-weight:600;min-height:18px;margin-bottom:10px;text-align:center}
+.hist{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:5px}
+.hist .t1{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.hist .who{font-weight:800;font-size:14px}
+.hist .when{font-size:12px;color:var(--mute)}
+.hist .what{font-size:14px}
+.hist .det{font-size:12px;color:var(--mute);word-break:break-word}
+.stf{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.stf .row{display:flex;gap:6px}
+.stf .row button{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.rbtn.on{background:#fff;color:var(--red)}
 .mb{display:flex;gap:8px}
+/* stop sideways wobble / rubber-band on phones */
+html,body{overflow-x:hidden;overscroll-behavior-x:none;max-width:100%}
+.tabs,.chips{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tabs::-webkit-scrollbar,.chips::-webkit-scrollbar{display:none}
+.brand,.brand>div{min-width:0}
+.brand>div{overflow:hidden;white-space:nowrap}
+.brand small{overflow:hidden;text-overflow:ellipsis}
+.hbtns{flex:none}
+#login{overflow:auto;overscroll-behavior:contain}
+body.nolog{overflow:hidden}
 .mb button{flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
 .mb .pri{background:var(--red);border-color:var(--red);color:#fff}
 .sqlbox{background:#1a1a1a;color:#eee;padding:12px;border-radius:10px;font-size:12px;overflow:auto;white-space:pre;margin-top:8px;font-family:ui-monospace,Menlo,monospace}
@@ -115,9 +148,23 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 </style>
 </head>
 <body>
+<div id="login"><div class="lcard">
+  <div class="ic"><i class="fas fa-user-shield"></i></div>
+  <h2>PM Staff Login</h2><p>Sign in with your staff username</p>
+  <div class="fld"><label>Username</label><input id="lUser" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
+  <div class="fld"><label>Password</label><input id="lPass" type="password" autocomplete="current-password"></div>
+  <div class="lerr" id="lErr"></div>
+  <div class="mb"><button type="button" class="pri" id="lBtn">Sign in</button></div>
+</div></div>
+
 <header><div class="hd">
-  <div class="brand"><div class="ic"><i class="fas fa-store"></i></div><div>PM Staff Panel<small>Orders &amp; stock</small></div></div>
-  <button class="rbtn" id="refreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+  <div class="brand"><div class="ic"><i class="fas fa-store"></i></div><div>PM Staff Panel<small id="whoLbl">Orders &amp; stock</small></div></div>
+  <div class="hbtns">
+    <button class="rbtn" id="refreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+    <button class="rbtn sq" id="bellBtn" type="button" title="Order notifications"><i class="fas fa-bell"></i></button>
+    <button class="rbtn sq" id="pwBtn" type="button" title="Change my password"><i class="fas fa-key"></i></button>
+    <button class="rbtn sq" id="outBtn" type="button" title="Logout"><i class="fas fa-right-from-bracket"></i></button>
+  </div>
 </div></header>
 
 <main>
@@ -133,6 +180,8 @@ main{max-width:1100px;margin:0 auto;padding:16px}
     <button class="tab on" data-tab="orders" type="button"><i class="fas fa-box"></i> Orders</button>
     <button class="tab" data-tab="products" type="button"><i class="fas fa-bottle-droplet"></i> Products</button>
     <button class="tab" data-tab="customers" type="button"><i class="fas fa-users"></i> Users</button>
+    <button class="tab" data-tab="history" id="tabHistory" type="button" style="display:none"><i class="fas fa-clock-rotate-left"></i> History</button>
+    <button class="tab" data-tab="staff" id="tabStaff" type="button" style="display:none"><i class="fas fa-user-shield"></i> Staff</button>
   </div>
 
   <section id="paneOrders">
@@ -148,15 +197,41 @@ main{max-width:1100px;margin:0 auto;padding:16px}
     <div class="list" id="products"><div class="empty"><i class="fas fa-spinner fa-spin"></i>Loading products...</div></div>
   </section>
   <section id="paneCustomers" style="display:none">
-    <div class="addbar"><span class="cnt" id="custCnt"></span>
-      <span style="display:flex;gap:8px;flex-wrap:wrap"><button class="addbtn ghost" id="importBtn" type="button"><i class="fas fa-file-import"></i> Import from orders</button><button class="addbtn" id="addCustBtn" type="button"><i class="fas fa-user-plus"></i> Add user</button></span></div>
-    <div class="tools">
-      <input id="cq" type="search" placeholder="Search name, phone or address">
-      <div class="chips" id="cchips"></div>
-    </div>
+    <div class="addbar"><span class="cnt" id="custCnt"></span><button class="addbtn" id="addCustBtn" type="button"><i class="fas fa-user-plus"></i> Add user</button></div>
+    <div class="tools"><input id="cq" type="search" placeholder="Search name, email, mobile or address"></div>
     <div class="list" id="customers"><div class="empty"><i class="fas fa-spinner fa-spin"></i>Loading users...</div></div>
   </section>
+  <section id="paneHistory" style="display:none">
+    <div class="tools">
+      <input id="hq" type="search" placeholder="Search staff, action or name">
+      <div class="chips" id="hchips"></div>
+    </div>
+    <div class="list" id="history"><div class="empty"><i class="fas fa-spinner fa-spin"></i>Loading history...</div></div>
+  </section>
+
+  <section id="paneStaff" style="display:none">
+    <div class="addbar"><span class="cnt" id="stfCnt"></span><button class="addbtn" id="addStfBtn" type="button"><i class="fas fa-user-plus"></i> Add staff</button></div>
+    <div class="list" id="stafflist"></div>
+  </section>
 </main>
+
+<!-- add staff modal -->
+<div class="mask" id="smask"><div class="modal">
+  <h3>Add staff</h3>
+  <div class="fld"><label>Username</label><input id="sUser" autocapitalize="none" spellcheck="false" placeholder="e.g. rahul (letters, numbers)"></div>
+  <div class="fld"><label>Full name</label><input id="sName"></div>
+  <div class="fld"><label>Password</label><input id="sPass" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
+  <div class="fld"><label>Role</label><select id="sRole"><option value="staff">Staff</option><option value="admin">Admin (can add staff)</option></select></div>
+  <div class="mb"><button type="button" id="sCancel">Cancel</button><button type="button" class="pri" id="sSave">Add staff</button></div>
+</div></div>
+
+<!-- password modal -->
+<div class="mask" id="wmask"><div class="modal">
+  <h3 id="wTitle">Change password</h3>
+  <div class="fld"><label>New password</label><input id="wPass" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
+  <div class="fld"><label>Confirm password</label><input id="wPass2" type="password" autocomplete="new-password"></div>
+  <div class="mb"><button type="button" id="wCancel">Cancel</button><button type="button" class="pri" id="wSave">Save password</button></div>
+</div></div>
 
 <!-- product modal -->
 <div class="mask" id="pmask"><div class="modal">
@@ -177,12 +252,12 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 <div class="mask" id="cmask"><div class="modal">
   <h3 id="cTitle">Add user</h3>
   <div class="fld"><label>Full name</label><input id="cName"></div>
-  <div class="fld"><label>Mobile number</label><input id="cPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit number"></div>
+  <div class="fld"><label>Email (login)</label><input id="cEmail" type="email" autocapitalize="none" spellcheck="false" placeholder="name@example.com"></div>
+  <div class="fld"><label>Mobile number (optional)</label><input id="cPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit number"></div>
   <div class="fld"><label id="cPwdLbl">Password</label>
     <div class="pwwrap"><input id="cPwd" type="password" autocomplete="new-password" placeholder="At least 6 characters"><button type="button" id="cEye" aria-label="Show password"><i class="fas fa-eye"></i></button></div>
     <small id="cPwdHint" style="color:var(--mute);font-size:12px"></small></div>
   <div class="fld"><label>Address</label><textarea id="cAddr"></textarea></div>
-  <label class="chk"><input type="checkbox" id="cOk"> Approved</label>
   <div class="mb"><button type="button" id="cCancel">Cancel</button><button type="button" class="pri" id="cSave">Save user</button></div>
 </div></div>
 <div id="toast"></div>
@@ -191,7 +266,8 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 // Same Supabase project as the store page
 const SUPABASE_URL = 'https://ithzvaxktawuvvyfeofs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_iWIUJsB1qDeggrFYBxBzVA_x7tloMm3';
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// own storage key so a staff login never mixes with a customer login on the store
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{storageKey:'pm-staff-auth'}});
 
 const STATUSES = ['Pending','Confirmed','Shipped','Delivered','Cancelled'];
 let orders = [], products = [], filter = 'All';
@@ -215,13 +291,13 @@ function phoneDigits(p){let d=String(p||'').replace(/\D/g,'');if(d.length===10)d
 
 async function loadOrders(){
   const {data,error}=await db.from('orders').select('*').order('created_at',{ascending:false}).limit(300);
-  if(error){console.error(error);showErr('<b>Could not load orders:</b> '+esc(error.message)+'<br>If this says "permission denied" or the list is empty, add a Supabase policy that lets staff read/update the <code>orders</code> table (see notes).');orders=[];}
+  if(error){console.error(error);showErr('Could not load orders. Please refresh and try again.');orders=[];}
   else{orders=data||[];}
   renderOrders();stats();
 }
 async function loadProducts(){
   const {data,error}=await db.from('products').select('*').order('price',{ascending:true});
-  if(error){console.error(error);showErr('<b>Could not load products:</b> '+esc(error.message));products=[];}
+  if(error){console.error(error);showErr('Could not load products. Please refresh and try again.');products=[];}
   else products=data||[];
   renderProducts();stats();
 }
@@ -307,7 +383,7 @@ $('orders').addEventListener('change',async e=>{
   sel.disabled=true;
   const {error}=await db.from('orders').update({status:val}).eq('id',id);
   sel.disabled=false;
-  if(error){console.error(error);toast('Could not update – check permissions');loadOrders();return;}
+  if(error){console.error(error);toast('Could not update . Please try again');loadOrders();return;}
   const o=orders.find(x=>String(x.id)===String(id));if(o)o.status=val;
   toast('Status: '+val);renderOrders();stats();
 });
@@ -319,14 +395,14 @@ $('products').addEventListener('click',async e=>{
   if(e.target.closest('[data-stock]')){
     const next=!p.in_stock;
     const {error}=await db.from('products').update({in_stock:next}).eq('id',id);
-    if(error){console.error(error);toast('Could not update – check permissions');return;}
+    if(error){console.error(error);toast('Could not update . Please try again');return;}
     p.in_stock=next;toast(next?'Marked in stock':'Marked out of stock');renderProducts();stats();
   }
   if(e.target.closest('[data-edit]')){openProd(p);return;}
   if(e.target.closest('[data-del]')){
     if(!confirm('Delete "'+p.name+'"? This cannot be undone.'))return;
     const {error}=await db.from('products').delete().eq('id',id);
-    if(error){console.error(error);toast('Could not delete – check permissions');return;}
+    if(error){console.error(error);toast('Could not delete . Please try again');return;}
     products=products.filter(x=>String(x.id)!==String(id));toast('Product deleted');renderProducts();stats();return;
   }
   if(e.target.closest('[data-save]')){
@@ -337,18 +413,18 @@ $('products').addEventListener('click',async e=>{
     const btn=e.target.closest('[data-save]');btn.disabled=true;
     const {error}=await db.from('products').update(upd).eq('id',id);
     btn.disabled=false;
-    if(error){console.error(error);toast('Could not save – check permissions');return;}
+    if(error){console.error(error);toast('Could not save . Please try again');return;}
     Object.assign(p,upd);toast('Saved');
   }
 });
 
 $('chips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;filter=c.dataset.f;renderOrders()});
 $('q').addEventListener('input',renderOrders);
+const PANES={orders:'paneOrders',products:'paneProducts',customers:'paneCustomers',history:'paneHistory',staff:'paneStaff'};
 document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
-  $('paneOrders').style.display=t.dataset.tab==='orders'?'':'none';
-  $('paneProducts').style.display=t.dataset.tab==='products'?'':'none';
-  $('paneCustomers').style.display=t.dataset.tab==='customers'?'':'none';
+  Object.keys(PANES).forEach(k=>{$(PANES[k]).style.display=t.dataset.tab===k?'':'none'});
+  if(t.dataset.tab==='history')loadHistory();
 }));
 
 // ---- product add / edit modal ----
@@ -385,7 +461,7 @@ $('pPick').addEventListener('click',()=>$('pFile').click());
 $('pFile').addEventListener('change',async e=>{
   const f=e.target.files[0];if(!f)return;
   try{pImgBlob=await compressImage(f);showPrev(URL.createObjectURL(pImgBlob));}
-  catch(err){toast(err.message);pImgBlob=null;}
+  catch(err){toast('Could not use this image');pImgBlob=null;}
 });
 $('pClear').addEventListener('click',()=>{pImgBlob=null;pImgUrl=null;$('pFile').value='';showPrev(null)});
 function closeProd(){$('pmask').classList.remove('on')}
@@ -403,56 +479,40 @@ $('pSave').addEventListener('click',async()=>{
     const path='p_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
     const up=await db.storage.from('product-images').upload(path,pImgBlob,{contentType:'image/jpeg',upsert:false});
     b.textContent='Save product';
-    if(up.error){b.disabled=false;console.error(up.error);toast('Image upload failed – run the storage SQL (see notes)');return;}
+    if(up.error){b.disabled=false;console.error(up.error);toast('Image upload failed. Please try again.');return;}
     image_url=db.storage.from('product-images').getPublicUrl(path).data.publicUrl;
   }
   const row={name,size,price,mrp:$('pMrp').value===''?null:Number($('pMrp').value),image_url,in_stock:$('pStock').checked};
   const q=editingProd?db.from('products').update(row).eq('id',editingProd.id):db.from('products').insert([row]);
   const {error}=await q;b.disabled=false;
-  if(error){console.error(error);toast('Could not save – '+(error.message||'check permissions'));return;}
+  if(error){console.error(error);toast('Could not save. Please try again.');return;}
   closeProd();toast(editingProd?'Product updated':'Product added');loadProducts();
 });
 
 // ---- users (customers table) ----
-const CUST_SQL=`create table if not exists customers (
-  id uuid primary key default gen_random_uuid(),
-  name text not null,
-  phone text,
-  address text,
-  approved boolean not null default false,
-  created_at timestamptz default now()
-);
-alter table customers enable row level security;
-create policy "staff all" on customers for all using (true) with check (true);`;
-let customers=[],cfilter='All',editingCust=null,custReady=true;
+let customers=[],editingCust=null,custReady=true;
 async function loadCustomers(){
   const {data,error}=await db.from('customers').select('*').order('created_at',{ascending:false}).limit(500);
   if(error){
     console.error(error);custReady=false;customers=[];
-    $('customers').innerHTML='<div class="empty" style="text-align:left"><i class="fas fa-database" style="text-align:center"></i><b>Users table not ready:</b> '+esc(error.message)+'<br><br>Run this once in Supabase → SQL Editor, then tap Refresh:<div class="sqlbox">'+esc(CUST_SQL)+'</div></div>';
-    $('custCnt').textContent='';$('cchips').innerHTML='';return;
+    $('customers').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>Could not load users. Please refresh and try again.</div>';
+    $('custCnt').textContent='';return;
   }
   custReady=true;customers=data||[];renderCustomers();
 }
 function renderCustomers(){
   if(!custReady)return;
-  const nWait=customers.filter(c=>!c.approved).length,nOk=customers.length-nWait;
-  $('custCnt').textContent=customers.length+' users · '+nWait+' waiting';
-  $('cchips').innerHTML=[['All',customers.length],['Waiting',nWait],['Approved',nOk]].map(([k,n])=>`<button class="chip ${cfilter===k?'on':''}" data-cf="${k}" type="button">${k} (${n})</button>`).join('');
+  $('custCnt').textContent=customers.length+' users';
   const q=$('cq').value.trim().toLowerCase();
-  const list=customers.filter(c=>{
-    if(cfilter==='Waiting'&&c.approved)return false;
-    if(cfilter==='Approved'&&!c.approved)return false;
-    return !q||[c.name,c.phone,c.address].some(v=>String(v||'').toLowerCase().includes(q));
-  });
+  const list=customers.filter(c=>!q||[c.name,c.email,c.phone,c.address].some(v=>String(v||'').toLowerCase().includes(q)));
   if(!list.length){$('customers').innerHTML='<div class="empty"><i class="fas fa-user-slash"></i>No users here</div>';return;}
   $('customers').innerHTML=list.map(c=>{
     const ph=phoneDigits(c.phone);
+    const d=c.created_at?new Date(c.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'';
     return `<div class="cu" data-cid="${esc(c.id)}">
-      <div class="top"><div><b>${esc(c.name||'Unnamed')}</b><div class="ph2">${esc(c.phone||'')}</div></div><span class="pill ${c.approved?'ap':'wt'}">${c.approved?'Approved':'Waiting'}</span></div>
+      <div class="top"><div><b>${esc(c.name||'Unnamed')}</b><div class="ph2">${esc(c.email||'')}</div>${c.phone?`<div class="ph2">${esc(c.phone)}</div>`:''}</div><span class="ph2">${esc(d)}</span></div>
       ${c.address?`<div class="ad">${esc(c.address)}</div>`:''}
       <div class="row">
-        <button class="${c.approved?'no':'ok'}" data-appr type="button">${c.approved?'<i class="fas fa-ban"></i> Unapprove':'<i class="fas fa-check"></i> Approve'}</button>
         ${ph?`<a href="tel:+${ph}"><i class="fas fa-phone"></i></a>`:''}
         <button data-cedit type="button"><i class="fas fa-pen"></i> Edit</button>
         <button data-cdel type="button" style="color:var(--red);border-color:#f3b3bd"><i class="fas fa-trash"></i></button>
@@ -462,39 +522,31 @@ function renderCustomers(){
 $('customers').addEventListener('click',async e=>{
   const card=e.target.closest('.cu');if(!card)return;
   const id=card.dataset.cid,c=customers.find(x=>String(x.id)===String(id));if(!c)return;
-  if(e.target.closest('[data-appr]')){
-    const next=!c.approved;
-    const {error}=await db.from('customers').update({approved:next}).eq('id',id);
-    if(error){console.error(error);toast('Could not update – check permissions');return;}
-    c.approved=next;toast(next?'User approved':'Approval removed');renderCustomers();
-  }
   if(e.target.closest('[data-cedit]'))openCust(c);
   if(e.target.closest('[data-cdel]')){
-    if(!confirm('Delete user "'+(c.name||'')+'" and their store login? They will be able to sign up again as a new user.'))return;
+    if(!confirm('Delete user "'+(c.name||'')+'" and their login? They can sign up again later.'))return;
     const {error}=await db.from('customers').delete().eq('id',id);
-    if(error){console.error(error);toast('Could not delete – check permissions');return;}
+    if(error){console.error(error);toast('Could not delete. Please try again');return;}
     customers=customers.filter(x=>String(x.id)!==String(id));renderCustomers();
-    // also remove the login so the number is free to register again
-    const rp=await db.rpc('staff_delete_user',{p_id:c.id,p_phone:String(c.phone||'').replace(/\D/g,'').slice(-10)||null});
-    if(rp.error){console.error(rp.error);toast(/function|schema cache|not find/i.test(rp.error.message)?'Removed from list, but login kept – run the "delete user" SQL in Supabase':'Removed from list, login not deleted – '+rp.error.message);}
+    const rp=await db.rpc('staff_remove_login',{p_id:c.id,p_email:c.email||null});
+    if(rp.error){console.error(rp.error);toast('Removed from list, but the login could not be deleted');}
     else toast('User and login deleted');
   }
 });
-$('cchips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;cfilter=c.dataset.cf;renderCustomers()});
 $('cq').addEventListener('input',renderCustomers);
 function openCust(c){
   editingCust=c||null;
   $('cTitle').textContent=c?'Edit user':'Add user';
-  $('cName').value=c?c.name||'':'';$('cPhone').value=c?c.phone||'':'';
-  $('cAddr').value=c?c.address||'':'';$('cOk').checked=c?!!c.approved:false;
+  $('cName').value=c?c.name||'':'';$('cEmail').value=c?c.email||'':'';$('cPhone').value=c?c.phone||'':'';
+  $('cAddr').value=c?c.address||'':'';
   $('cPwd').value='';$('cPwd').type='password';
-  $('cPhone').readOnly=!!c;
+  $('cEmail').readOnly=!!(c&&c.email);
   $('cPwdLbl').textContent=c?'New password (optional)':'Password';
-  $('cPwdHint').textContent=c?'Leave blank to keep the current password. Mobile number is the login id and cannot be changed here.':'The user logs in on the store with this mobile number and password.';
+  $('cPwdHint').textContent=c?'Leave blank to keep the current password. Email is the login id and cannot be changed here.':'The user logs in on the store with this email and password.';
   $('cmask').classList.add('on');
 }
 function closeCust(){$('cmask').classList.remove('on')}
-$('addCustBtn').addEventListener('click',()=>{if(!custReady){toast('Create the users table first');return;}openCust(null)});
+$('addCustBtn').addEventListener('click',()=>{if(!custReady){toast('Could not load users. Please refresh');return;}openCust(null)});
 $('cCancel').addEventListener('click',closeCust);
 $('cmask').addEventListener('click',e=>{if(e.target===$('cmask'))closeCust()});
 $('cPhone').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,10)});
@@ -502,75 +554,241 @@ $('cEye').addEventListener('click',()=>{const i=$('cPwd');i.type=i.type==='passw
 
 // separate client so creating a login never signs this browser in as that user
 const authDb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-const AUTH_EMAIL_DOMAIN='kcst.com';
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 // returns {id} or {error}
-async function createLogin(phone,password,name,address){
-  const {data,error}=await authDb.auth.signUp({email:phone+'@'+AUTH_EMAIL_DOMAIN,password,options:{data:{full_name:name,phone,address:address||''}}});
-  if(error)return {error:/already|registered/i.test(error.message)?'This mobile number already has a login. Use Edit to change its password.':error.message};
-  if(!data.user||(data.user.identities&&data.user.identities.length===0))return {error:'This mobile number already has a login. Use Edit to change its password.'};
+async function createLogin(email,password,name,address,phone){
+  const {data,error}=await authDb.auth.signUp({email,password,options:{data:{full_name:name,address:address||'',phone:phone||''}}});
+  if(error)return {error:/already|registered/i.test(error.message)?'This email already has a login. Use Edit to change its password.':'Could not create the login. Please try again.'};
+  if(!data.user||(data.user.identities&&data.user.identities.length===0))return {error:'This email already has a login. Use Edit to change its password.'};
   return {id:data.user.id};
 }
-const PWD_SQL_MSG='Password function missing – run the "staff password" SQL in Supabase first.';
 
 $('cSave').addEventListener('click',async()=>{
-  const name=$('cName').value.trim(),phone=$('cPhone').value.trim(),pwd=$('cPwd').value,address=$('cAddr').value.trim();
+  const name=$('cName').value.trim(),email=$('cEmail').value.trim().toLowerCase(),phone=$('cPhone').value.trim(),pwd=$('cPwd').value,address=$('cAddr').value.trim();
   if(!name){toast('Enter name');return;}
+  if(phone&&!/^[6-9]\d{9}$/.test(phone)){toast('Mobile number must be 10 digits');return;}
   if(!editingCust){
-    if(!/^[6-9]\d{9}$/.test(phone)){toast('Enter a valid 10-digit mobile number');return;}
+    if(!EMAIL_RE.test(email)){toast('Enter a valid email address');return;}
     if(pwd.length<6){toast('Password must be at least 6 characters');return;}
-    if(customers.some(c=>String(c.phone||'').slice(-10)===phone)){toast('This number is already in the list – use Edit');return;}
+    if(customers.some(c=>String(c.email||'').toLowerCase()===email)){toast('This email is already in the list – use Edit');return;}
   }else{
     if(pwd&&pwd.length<6){toast('Password must be at least 6 characters');return;}
-    if(pwd&&!/^[6-9]\d{9}$/.test(phone)){toast('Add a valid mobile number before setting a password');return;}
+    if(pwd&&!EMAIL_RE.test(email)){toast('This user has no email login – cannot set a password');return;}
   }
   const b=$('cSave');b.disabled=true;b.textContent='Saving...';
-  const done=()=>{b.disabled=false;b.textContent='Save user'};
   try{
-    const approved=$('cOk').checked;
     if(!editingCust){
-      const r=await createLogin(phone,pwd,name,address);
+      const r=await createLogin(email,pwd,name,address,phone);
       if(r.error){toast(r.error);return;}
-      const {error}=await db.from('customers').upsert([{id:r.id,name,phone,address:address||null,approved}],{onConflict:'id'});
-      if(error){console.error(error);toast('Login created but list save failed – '+error.message);return;}
+      const {error}=await db.from('customers').upsert([{id:r.id,name,email,phone:phone||null,address:address||null}],{onConflict:'id'});
+      if(error){console.error(error);toast('Could not save the user. Please try again');return;}
       closeCust();toast('User added with password');loadCustomers();return;
     }
-    // edit
-    const {error}=await db.from('customers').update({name,address:address||null,approved}).eq('id',editingCust.id);
-    if(error){console.error(error);toast('Could not save – '+(error.message||'check permissions'));return;}
+    const {error}=await db.from('customers').update({name,phone:phone||null,address:address||null}).eq('id',editingCust.id);
+    if(error){console.error(error);toast('Could not save. Please try again');return;}
     let msg='User updated';
-    if(/^[6-9]\d{9}$/.test(phone)){
-      const rp=await db.rpc('staff_save_user_auth',{p_phone:phone,p_password:pwd||null,p_name:name,p_address:address||null});
-      if(rp.error){console.error(rp.error);if(pwd){toast(/function|schema cache|not find/i.test(rp.error.message)?PWD_SQL_MSG:'Password not changed – '+rp.error.message);loadCustomers();return;}}
+    if(EMAIL_RE.test(email)){
+      const rp=await db.rpc('staff_update_login',{p_email:email,p_password:pwd||null,p_name:name,p_address:address||null,p_phone:phone||null});
+      if(rp.error){console.error(rp.error);if(pwd){toast('Could not change the password. Please try again');loadCustomers();return;}}
       else if(!rp.data&&pwd){
-        const r=await createLogin(phone,pwd,name,address);
-        if(r.error){toast('Saved, but login not created – '+r.error);loadCustomers();return;}
+        if(me.role!=='admin'){toast('Only an admin can create a login');loadCustomers();return;}
+        const r=await createLogin(email,pwd,name,address,phone);
+        if(r.error){toast('Saved, but the login could not be created');loadCustomers();return;}
         msg='User updated, login created';
       }else if(pwd)msg='User updated, password changed';
     }
     closeCust();toast(msg);loadCustomers();
-  }finally{done();}
-});
-$('importBtn').addEventListener('click',async()=>{
-  if(!custReady){toast('Create the users table first');return;}
-  const have=new Set(customers.map(c=>String(c.phone||'').slice(-10)));
-  const seen=new Map();
-  orders.forEach(o=>{const ph=String(o.customer_phone||'').replace(/\D/g,'').slice(-10);
-    if(ph.length===10&&!have.has(ph)&&!seen.has(ph))seen.set(ph,{name:o.customer_name||'Customer',phone:ph,address:o.customer_address||null,approved:false});});
-  if(!seen.size){toast('No new customers in orders');return;}
-  if(!confirm('Add '+seen.size+' customers from past orders (as waiting)?'))return;
-  const {error}=await db.from('customers').insert([...seen.values()]);
-  if(error){console.error(error);toast('Import failed – '+error.message);return;}
-  toast(seen.size+' users imported');loadCustomers();
+  }finally{b.disabled=false;b.textContent='Save user'}
 });
 
 async function refresh(){
   const b=$('refreshBtn');b.classList.add('spin');showErr('');
-  await Promise.all([loadOrders(),loadProducts(),loadCustomers()]);
+  await Promise.all([loadOrders(),loadProducts(),loadCustomers(),loadHistory(),loadStaff()]);
   b.classList.remove('spin');
 }
 $('refreshBtn').addEventListener('click',refresh);
-refresh();
-setInterval(()=>{if(document.visibilityState==='visible')loadOrders()},60000);
+setInterval(()=>{if(me&&document.visibilityState==='visible')loadOrders()},60000);
+
+// ---- staff login ----
+let me=null;
+const STAFF_DOMAIN='staff.kcst.com';
+function showLogin(msg){me=null;document.body.classList.add('nolog');$('login').classList.add('on');$('lErr').textContent=msg||'';$('lPass').value='';}
+async function enterApp(user){
+  const {data,error}=await db.from('staff').select('*').eq('id',user.id).maybeSingle();
+  if(error)console.error(error);
+  if(error||!data||!data.active){await db.auth.signOut();showLogin(error?'Could not sign in. Please try again.':'This account does not have staff access.');return;}
+  me=data;
+  $('login').classList.remove('on');document.body.classList.remove('nolog');
+  $('whoLbl').textContent='Signed in: '+(me.name||me.username);
+  const isAdm=me.role==='admin';
+  $('tabStaff').style.display=isAdm?'':'none';
+  $('tabHistory').style.display=isAdm?'':'none';
+  $('addCustBtn').style.display=isAdm?'':'none';
+  // a non-admin who was on an admin tab goes back to Orders
+  document.querySelector('.tab[data-tab="orders"]').click();
+  refresh();
+}
+async function doLogin(){
+  const u=$('lUser').value.trim().toLowerCase(),pw=$('lPass').value;
+  if(!/^[a-z0-9._-]{3,30}$/.test(u)||!pw){$('lErr').textContent='Enter your username and password.';return;}
+  const b=$('lBtn');b.disabled=true;b.textContent='Signing in...';$('lErr').textContent='';
+  const {data,error}=await db.auth.signInWithPassword({email:u+'@'+STAFF_DOMAIN,password:pw});
+  b.disabled=false;b.textContent='Sign in';
+  if(error){console.error(error);$('lErr').textContent=/invalid/i.test(error.message)?'Wrong username or password.':'Could not sign in. Please try again.';return;}
+  await enterApp(data.user);
+}
+$('lBtn').addEventListener('click',doLogin);
+$('lPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+$('lUser').addEventListener('keydown',e=>{if(e.key==='Enter')$('lPass').focus()});
+$('outBtn').addEventListener('click',async()=>{await db.auth.signOut();showLogin('')});
+db.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){me=null;document.body.classList.add('nolog');$('login').classList.add('on')}});
+db.auth.getSession().then(({data})=>{if(data.session)enterApp(data.session.user);else showLogin('')});
+
+// ---- new-order notifications (web push) ----
+const VAPID_PUBLIC='BAW5Oj6YObwXB_4XaiMxamC90DRNJ2wKW7Ay3-q82CRZfMEoiWc5Av9ZpBD3aOjV3odKWNO7rJMl1mGWBzePmJQ';
+function b64ToU8(b){const pad='='.repeat((4-b.length%4)%4);const raw=atob((b+pad).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
+let swReg=null;
+async function bellState(){
+  if(!swReg||!('PushManager' in window))return;
+  try{const sub=await swReg.pushManager.getSubscription();$('bellBtn').classList.toggle('on',!!sub);$('bellBtn').title=sub?'Notifications on (tap to turn off)':'Turn on order notifications'}catch(e){console.error(e)}
+}
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').then(r=>{swReg=r;return navigator.serviceWorker.ready}).then(r=>{swReg=r;bellState()}).catch(e=>console.error(e));
+}
+$('bellBtn').addEventListener('click',async()=>{
+  if(!swReg||!('PushManager' in window)||!('Notification' in window)){toast('Notifications are not available here. Open the page over https.');return;}
+  try{
+    const old=await swReg.pushManager.getSubscription();
+    if(old){
+      if(!confirm('Turn off order notifications on this phone?'))return;
+      await db.from('push_subs').delete().eq('endpoint',old.endpoint);
+      await old.unsubscribe();bellState();toast('Notifications turned off');return;
+    }
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){toast('Notifications were not allowed');return;}
+    const sub=await swReg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(VAPID_PUBLIC)});
+    const j=sub.toJSON();
+    const {error}=await db.from('push_subs').upsert({staff_id:me.id,endpoint:j.endpoint,p256dh:j.keys.p256dh,auth:j.keys.auth,page_url:location.href.split('#')[0]},{onConflict:'endpoint'});
+    if(error){console.error(error);await sub.unsubscribe();toast('Could not turn on notifications. Please try again');return;}
+    bellState();toast('Order notifications are on');
+  }catch(e){console.error(e);toast('Could not turn on notifications. Please try again')}
+});
+
+// ---- history (who approved / edited what) ----
+let logs=[],hfilter='All';
+const TYPE_LABEL={customers:'Users',products:'Products',orders:'Orders',staff:'Staff'};
+async function loadHistory(){
+  if(!me||me.role!=='admin')return;
+  const {data,error}=await db.from('audit_log').select('*').order('at',{ascending:false}).limit(300);
+  if(error){console.error(error);$('history').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>Could not load history. Please refresh and try again.</div>';return;}
+  logs=data||[];renderHistory();
+}
+function fmtVal(v){if(v===null||v===undefined||v==='')return '—';if(typeof v==='object')return '…';const t=String(v);return t.length>40?t.slice(0,40)+'…':t}
+function detailText(l){
+  const d=l.details;if(!d||!d.after)return '';
+  const skip=['created_at','updated_at','order_items','id'];
+  return Object.keys(d.after).filter(k=>!skip.includes(k)).slice(0,4).map(k=>k+': '+fmtVal(d.before&&d.before[k])+' → '+fmtVal(d.after[k])).join(' · ');
+}
+function actClass(a){
+  if(a==='approved'||a==='added')return 'p3';
+  if(a==='unapproved')return 'p0';
+  if(a==='deleted')return 'pc';
+  if(a==='status changed'||a==='password changed')return 'p2';
+  return 'p1';
+}
+function renderHistory(){
+  const types=['All','Users','Products','Orders','Staff'];
+  $('hchips').innerHTML=types.map(t=>`<button class="chip ${hfilter===t?'on':''}" data-h="${t}" type="button">${t}</button>`).join('');
+  const q=$('hq').value.trim().toLowerCase();
+  const list=logs.filter(l=>{
+    if(hfilter!=='All'&&TYPE_LABEL[l.target_type]!==hfilter)return false;
+    return !q||[l.staff_name,l.action,l.target_label,TYPE_LABEL[l.target_type]].some(v=>String(v||'').toLowerCase().includes(q));
+  });
+  if(!list.length){$('history').innerHTML='<div class="empty"><i class="fas fa-clock-rotate-left"></i>No history yet</div>';return;}
+  $('history').innerHTML=list.map(l=>{
+    const d=new Date(l.at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
+    const det=l.action==='password changed'?'':detailText(l);
+    return `<div class="hist"><div class="t1"><span class="who">${esc(l.staff_name||'Unknown')}</span><span class="pill ${actClass(l.action)}">${esc(l.action)}</span></div>
+      <div class="what">${esc(TYPE_LABEL[l.target_type]||l.target_type)}: <b>${esc(l.target_label||'')}</b></div>
+      ${det?`<div class="det">${esc(det)}</div>`:''}<div class="when">${esc(d)}</div></div>`;
+  }).join('');
+}
+$('hchips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;hfilter=c.dataset.h;renderHistory()});
+$('hq').addEventListener('input',renderHistory);
+
+// ---- staff accounts (admin) ----
+let staffRows=[];
+async function loadStaff(){
+  if(!me||me.role!=='admin')return;
+  const {data,error}=await db.from('staff').select('*').order('created_at',{ascending:true});
+  if(error){console.error(error);$('stafflist').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>Could not load staff. Please refresh and try again.</div>';return;}
+  staffRows=data||[];renderStaff();
+}
+function renderStaff(){
+  $('stfCnt').textContent=staffRows.length+' staff';
+  $('stafflist').innerHTML=staffRows.map(r=>`<div class="stf" data-sid="${esc(r.id)}">
+    <div class="top" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><b>${esc(r.name||r.username)}</b><div style="font-size:13px;color:var(--mute)">@${esc(r.username)} · ${r.role==='admin'?'Admin':'Staff'}</div></div>
+      <span class="pill ${r.active?'ap':'pc'}">${r.active?'Active':'Disabled'}</span></div>
+    ${r.id===me.id?'':`<div class="row"><button data-spw type="button"><i class="fas fa-key"></i> Reset password</button><button data-sact type="button" style="${r.active?'color:var(--red);border-color:#f3b3bd':''}">${r.active?'Disable':'Enable'}</button></div>`}
+  </div>`).join('');
+}
+$('stafflist').addEventListener('click',async e=>{
+  const card=e.target.closest('.stf');if(!card)return;
+  const r=staffRows.find(x=>x.id===card.dataset.sid);if(!r)return;
+  if(e.target.closest('[data-sact]')){
+    if(r.active&&!confirm('Disable '+(r.name||r.username)+'? They will not be able to login.'))return;
+    const {error}=await db.from('staff').update({active:!r.active}).eq('id',r.id);
+    if(error){console.error(error);toast('Could not update. Please try again');return;}
+    r.active=!r.active;toast(r.active?'Staff enabled':'Staff disabled');renderStaff();
+  }
+  if(e.target.closest('[data-spw]'))openPw(r);
+});
+$('addStfBtn').addEventListener('click',()=>{['sUser','sName','sPass'].forEach(i=>$(i).value='');$('sRole').value='staff';$('smask').classList.add('on')});
+$('sCancel').addEventListener('click',()=>$('smask').classList.remove('on'));
+$('smask').addEventListener('click',e=>{if(e.target===$('smask'))$('smask').classList.remove('on')});
+$('sSave').addEventListener('click',async()=>{
+  const u=$('sUser').value.trim().toLowerCase(),name=$('sName').value.trim(),pw=$('sPass').value,role=$('sRole').value;
+  if(!/^[a-z0-9._-]{3,30}$/.test(u)){toast('Username: 3-30 letters, numbers, . _ -');return;}
+  if(!name){toast('Enter full name');return;}
+  if(pw.length<6){toast('Password must be at least 6 characters');return;}
+  const b=$('sSave');b.disabled=true;
+  try{
+    const {data,error}=await authDb.auth.signUp({email:u+'@'+STAFF_DOMAIN,password:pw,options:{data:{full_name:name,staff:true}}});
+    if(error||!data.user||(data.user.identities&&data.user.identities.length===0)){if(error)console.error(error);toast(error&&!/already|registered/i.test(error.message)?'Could not create staff. Please try again':'This username is already taken');return;}
+    const ins=await db.from('staff').insert([{id:data.user.id,username:u,name,role}]);
+    if(ins.error){console.error(ins.error);toast('Could not save staff. Please try again');return;}
+    $('smask').classList.remove('on');toast('Staff added');loadStaff();loadHistory();
+  }finally{b.disabled=false}
+});
+
+// ---- password modal (own password, or admin resetting a staff member) ----
+let pwTarget=null;
+function openPw(target){
+  pwTarget=target||null;
+  $('wTitle').textContent=target?'Reset password: '+(target.name||target.username):'Change my password';
+  $('wPass').value='';$('wPass2').value='';$('wmask').classList.add('on');
+}
+$('pwBtn').addEventListener('click',()=>openPw(null));
+$('wCancel').addEventListener('click',()=>$('wmask').classList.remove('on'));
+$('wmask').addEventListener('click',e=>{if(e.target===$('wmask'))$('wmask').classList.remove('on')});
+$('wSave').addEventListener('click',async()=>{
+  const a=$('wPass').value,b2=$('wPass2').value;
+  if(a.length<6){toast('Password must be at least 6 characters');return;}
+  if(a!==b2){toast('Passwords do not match');return;}
+  const btn=$('wSave');btn.disabled=true;
+  try{
+    if(pwTarget){
+      const {error}=await db.rpc('staff_reset_password',{p_username:pwTarget.username,p_password:a});
+      if(error){console.error(error);toast('Could not reset the password. Please try again');return;}
+      toast('Password reset');loadHistory();
+    }else{
+      const {error}=await db.auth.updateUser({password:a});
+      if(error){console.error(error);toast('Could not change the password. Please try again');return;}
+      toast('Password changed');
+    }
+    $('wmask').classList.remove('on');
+  }finally{btn.disabled=false}
+});
 </script>
 </body>
 </html>
