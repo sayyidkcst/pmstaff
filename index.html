@@ -130,6 +130,26 @@ main{max-width:1100px;margin:0 auto;padding:16px}
 .stf .row{display:flex;gap:6px}
 .stf .row button{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 .rbtn.on{background:#fff;color:var(--red)}
+.irow{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.irow select{flex:1 1 auto;min-width:0;padding:10px;border-radius:10px;border:1.5px solid var(--line);font:inherit;font-size:14px;background:#fff}
+.irow input{width:70px;padding:10px 8px;border-radius:10px;border:1.5px solid var(--line);font:inherit;font-size:14px}
+.irow .rm{width:36px;height:40px;flex:none;border:1.5px solid #f3b3bd;background:#fff;color:var(--red);border-radius:10px;cursor:pointer}
+.ihead{display:flex;gap:6px;font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.ihead span:first-child{flex:1}.ihead span:nth-child(2),.ihead span:nth-child(3){width:70px}.ihead span:last-child{width:36px}
+.ntot{display:flex;justify-content:space-between;font-weight:800;font-size:16px;margin:10px 0 14px;padding-top:10px;border-top:1px solid var(--line)}
+.rbtn{position:relative}
+.bdg{position:absolute;top:-5px;right:-5px;min-width:19px;height:19px;padding:0 5px;border-radius:40px;background:#ffd400;color:#1a1a1a;font-size:11px;font-weight:800;display:none;align-items:center;justify-content:center;border:2px solid var(--red)}
+.bdg.on{display:flex}
+.nfi{display:flex;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:#fff}
+.nfi.un{background:#fff6f7;border-color:#f3c3cb}
+.nfi .ico{width:38px;height:38px;border-radius:50%;background:#f1e8e0;color:var(--red);display:flex;align-items:center;justify-content:center;flex:none}
+.nfi .tx{flex:1;min-width:0}
+.nfi .tt{font-weight:800;font-size:14px}.nfi .bd{font-size:13px;color:var(--mute);word-break:break-word}.nfi .tm{font-size:11px;color:var(--mute);margin-top:2px}
+.nfi .rd{align-self:center;flex:none;padding:7px 10px;border-radius:10px;border:1.5px solid var(--line);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer;color:var(--ink)}
+.nfi .dot{width:9px;height:9px;border-radius:50%;background:var(--red);flex:none;align-self:center}
+.pushrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:14px}
+.pushrow small{display:block;color:var(--mute);font-size:12px}
+.pushrow button{padding:9px 14px;border-radius:10px;border:1.5px solid var(--red);background:#fff;color:var(--red);font:inherit;font-size:13px;font-weight:700;cursor:pointer;flex:none}
 .mb{display:flex;gap:8px}
 /* stop sideways wobble / rubber-band on phones */
 html,body{overflow-x:hidden;overscroll-behavior-x:none;max-width:100%}
@@ -161,7 +181,7 @@ body.nolog{overflow:hidden}
   <div class="brand"><div class="ic"><i class="fas fa-store"></i></div><div>PM Staff Panel<small id="whoLbl">Orders &amp; stock</small></div></div>
   <div class="hbtns">
     <button class="rbtn" id="refreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
-    <button class="rbtn sq" id="bellBtn" type="button" title="Order notifications"><i class="fas fa-bell"></i></button>
+    <button class="rbtn sq" id="bellBtn" type="button" title="Notifications"><i class="fas fa-bell"></i><span class="bdg" id="bellBdg">0</span></button>
     <button class="rbtn sq" id="pwBtn" type="button" title="Change my password"><i class="fas fa-key"></i></button>
     <button class="rbtn sq" id="outBtn" type="button" title="Logout"><i class="fas fa-right-from-bracket"></i></button>
   </div>
@@ -185,6 +205,7 @@ body.nolog{overflow:hidden}
   </div>
 
   <section id="paneOrders">
+    <div class="addbar"><span class="cnt" id="ordCnt"></span><button class="addbtn" id="addOrdBtn" type="button"><i class="fas fa-plus"></i> New order</button></div>
     <div class="tools">
       <input id="q" type="search" placeholder="Search name, phone or order no.">
       <div class="chips" id="chips"></div>
@@ -246,6 +267,40 @@ body.nolog{overflow:hidden}
     <input id="pFile" type="file" accept="image/*" style="display:none"></div>
   <label class="chk"><input type="checkbox" id="pStock" checked> In stock</label>
   <div class="mb"><button type="button" id="pCancel">Cancel</button><button type="button" class="pri" id="pSave">Save product</button></div>
+</div></div>
+
+<!-- notifications popup (closes only with its close button) -->
+<div class="mask" id="nfmask"><div class="modal">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="margin:0">Notifications</h3><button type="button" id="nfClose" class="mini" aria-label="Close"><i class="fas fa-xmark"></i></button></div>
+  <div class="chips" id="nfChips" style="margin-bottom:10px"></div>
+  <div id="nfList"></div>
+  <div class="mb" style="margin-top:6px"><button type="button" id="nfAll"><i class="fas fa-check-double"></i> Mark all as read</button></div>
+  <div class="pushrow"><div><b>Phone alerts</b><small id="pushState">Checking...</small></div><button type="button" id="pushBtn">Turn on</button></div>
+</div></div>
+
+<!-- edit order modal -->
+<div class="mask" id="omask"><div class="modal">
+  <h3 id="oTitle">Edit order</h3>
+  <div class="fld"><label>Customer name</label><input id="oName"></div>
+  <div class="fld"><label>Phone</label><input id="oPhone" type="tel" inputmode="numeric"></div>
+  <div class="fld"><label>Delivery address</label><textarea id="oAddr"></textarea></div>
+  <div class="fld"><label>Notes</label><textarea id="oNotes" style="min-height:60px"></textarea></div>
+  <div class="mb"><button type="button" id="oCancel">Cancel</button><button type="button" class="pri" id="oSave">Save order</button></div>
+</div></div>
+
+<!-- new order modal -->
+<div class="mask" id="nmask"><div class="modal">
+  <h3>New order</h3>
+  <div class="fld"><label>Customer name</label><input id="nName"></div>
+  <div class="fld"><label>Phone</label><input id="nPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit number"></div>
+  <div class="fld"><label>Delivery address</label><textarea id="nAddr"></textarea></div>
+  <div class="fld"><label>Notes (optional)</label><textarea id="nNotes" style="min-height:60px"></textarea></div>
+  <div class="fld"><label>Status</label><select id="nStatus"><option>Pending</option><option>Confirmed</option><option>Shipped</option><option>Delivered</option></select></div>
+  <div class="ihead"><span>Product</span><span>Qty</span><span>Price ₹</span><span></span></div>
+  <div id="nItems"></div>
+  <button type="button" class="addbtn ghost" id="nAddItem" style="padding:9px 14px;font-size:13px"><i class="fas fa-plus"></i> Add item</button>
+  <div class="ntot"><span>Total</span><span id="nTotal">₹0</span></div>
+  <div class="mb"><button type="button" id="nCancel">Cancel</button><button type="button" class="pri" id="nSave">Save order</button></div>
 </div></div>
 
 <!-- user modal -->
@@ -327,6 +382,7 @@ function renderOrders(){
     const ref=String(o.id==null?'':o.id).slice(-6).toLowerCase();
     return [o.customer_name,o.customer_phone,ref].some(v=>String(v||'').toLowerCase().includes(q));
   });
+  $('ordCnt').textContent=list.length+' orders';
   if(!list.length){$('orders').innerHTML='<div class="empty"><i class="fas fa-inbox"></i>No orders here</div>';return;}
   $('orders').innerHTML=list.map(o=>{
     let items=o.order_items;
@@ -350,6 +406,7 @@ function renderOrders(){
       <div class="oa">
         <a class="call" href="tel:+${ph}"><i class="fas fa-phone"></i> Call</a>
         <a class="wa" href="https://wa.me/${ph}?text=${msg}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+        <button type="button" data-oedit data-oid2="${esc(o.id)}"><i class="fas fa-pen"></i> Edit</button>
         <select data-oid="${esc(o.id)}">${STATUSES.map(x=>`<option ${x===st?'selected':''}>${x}</option>`).join('')}</select>
       </div></div>`;
   }).join('');
@@ -426,6 +483,93 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   Object.keys(PANES).forEach(k=>{$(PANES[k]).style.display=t.dataset.tab===k?'':'none'});
   if(t.dataset.tab==='history')loadHistory();
 }));
+
+// ---- edit an order's customer details / address ----
+let editingOrder=null;
+$('orders').addEventListener('click',e=>{
+  const b=e.target.closest('[data-oedit]');if(!b)return;
+  const o=orders.find(x=>String(x.id)===String(b.dataset.oid2));if(!o)return;
+  editingOrder=o;
+  const ref=String(o.id==null?'':o.id).slice(-6).toUpperCase();
+  $('oTitle').textContent='Edit order #'+ref;
+  $('oName').value=o.customer_name||'';$('oPhone').value=o.customer_phone||'';
+  $('oAddr').value=o.customer_address||'';$('oNotes').value=o.customer_notes||'';
+  $('omask').classList.add('on');
+});
+$('oCancel').addEventListener('click',()=>$('omask').classList.remove('on'));
+$('omask').addEventListener('click',e=>{if(e.target===$('omask'))$('omask').classList.remove('on')});
+$('oSave').addEventListener('click',async()=>{
+  const name=$('oName').value.trim(),phone=$('oPhone').value.trim(),addr=$('oAddr').value.trim(),notes=$('oNotes').value.trim();
+  if(!name){toast('Enter customer name');return;}
+  if(!phone){toast('Enter phone number');return;}
+  if(!addr){toast('Enter delivery address');return;}
+  const b=$('oSave');b.disabled=true;
+  const row={customer_name:name,customer_phone:phone,customer_address:addr,customer_notes:notes||null};
+  const {error}=await db.from('orders').update(row).eq('id',editingOrder.id);
+  b.disabled=false;
+  if(error){console.error(error);toast('Could not save the order. Please try again');return;}
+  Object.assign(editingOrder,row);
+  $('omask').classList.remove('on');toast('Order updated');renderOrders();
+});
+
+// ---- add a new order by hand (phone call, WhatsApp, in person) ----
+function prodOptions(sel){
+  return products.map(p=>`<option value="${esc(p.id)}" ${String(p.id)===String(sel)?'selected':''}>${esc(p.name)}${p.size?' – '+esc(p.size):''}${p.in_stock?'':' (out of stock)'}</option>`).join('');
+}
+function addItemRow(){
+  const first=products[0];
+  const d=document.createElement('div');d.className='irow';
+  d.innerHTML=`<select class="i-prod">${prodOptions(first&&first.id)}</select><input class="i-qty" type="number" min="1" value="1" inputmode="numeric"><input class="i-price" type="number" min="0" value="${first?Number(first.price)||0:0}" inputmode="numeric"><button type="button" class="rm" aria-label="Remove"><i class="fas fa-xmark"></i></button>`;
+  $('nItems').appendChild(d);calcNew();
+}
+function calcNew(){
+  let t=0;document.querySelectorAll('#nItems .irow').forEach(r=>{t+=(Number(r.querySelector('.i-qty').value)||0)*(Number(r.querySelector('.i-price').value)||0)});
+  $('nTotal').textContent=money(t);return t;
+}
+$('nItems').addEventListener('change',e=>{
+  if(e.target.classList.contains('i-prod')){
+    const p=products.find(x=>String(x.id)===e.target.value);
+    if(p)e.target.closest('.irow').querySelector('.i-price').value=Number(p.price)||0;
+  }
+  calcNew();
+});
+$('nItems').addEventListener('input',calcNew);
+$('nItems').addEventListener('click',e=>{
+  if(!e.target.closest('.rm'))return;
+  if(document.querySelectorAll('#nItems .irow').length<2){toast('An order needs at least one item');return;}
+  e.target.closest('.irow').remove();calcNew();
+});
+$('nAddItem').addEventListener('click',addItemRow);
+$('addOrdBtn').addEventListener('click',()=>{
+  if(!products.length){toast('Products are not loaded yet. Please refresh');return;}
+  ['nName','nPhone','nAddr','nNotes'].forEach(i=>$(i).value='');
+  $('nStatus').value='Pending';$('nItems').innerHTML='';addItemRow();
+  $('nmask').classList.add('on');
+});
+$('nPhone').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,10)});
+$('nCancel').addEventListener('click',()=>$('nmask').classList.remove('on'));
+$('nmask').addEventListener('click',e=>{if(e.target===$('nmask'))$('nmask').classList.remove('on')});
+$('nSave').addEventListener('click',async()=>{
+  const name=$('nName').value.trim(),phone=$('nPhone').value.trim(),addr=$('nAddr').value.trim(),notes=$('nNotes').value.trim();
+  if(!name){toast('Enter customer name');return;}
+  if(!/^[6-9]\d{9}$/.test(phone)){toast('Enter a valid 10-digit phone number');return;}
+  if(!addr){toast('Enter delivery address');return;}
+  const items=[];
+  for(const r of document.querySelectorAll('#nItems .irow')){
+    const p=products.find(x=>String(x.id)===r.querySelector('.i-prod').value);
+    const qty=Number(r.querySelector('.i-qty').value),price=Number(r.querySelector('.i-price').value);
+    if(!p||!(qty>=1)||!(price>=0)){toast('Check the items: quantity and price');return;}
+    items.push({name:p.name,size:p.size||'',qty,price});
+  }
+  const total=items.reduce((a,i)=>a+i.qty*i.price,0);
+  const b=$('nSave');b.disabled=true;
+  const row={customer_name:name,customer_phone:phone,customer_address:addr,customer_notes:notes||null,order_items:items,total_amount:total,status:$('nStatus').value};
+  const {error}=await db.from('orders').insert([row]);
+  b.disabled=false;
+  if(error){console.error(error);toast('Could not add the order. Please try again');return;}
+  ownOrderAt=Date.now();
+  $('nmask').classList.remove('on');toast('Order added');loadOrders();
+});
 
 // ---- product add / edit modal ----
 let editingProd=null,pImgUrl=null,pImgBlob=null;
@@ -603,16 +747,102 @@ $('cSave').addEventListener('click',async()=>{
 
 async function refresh(){
   const b=$('refreshBtn');b.classList.add('spin');showErr('');
-  await Promise.all([loadOrders(),loadProducts(),loadCustomers(),loadHistory(),loadStaff()]);
+  await Promise.all([loadOrders(),loadProducts(),loadCustomers(),loadHistory(),loadStaff(),loadNotifs()]);
   b.classList.remove('spin');
 }
-$('refreshBtn').addEventListener('click',refresh);
+$('refreshBtn').addEventListener('click',()=>location.reload());
 setInterval(()=>{if(me&&document.visibilityState==='visible')loadOrders()},60000);
+// coming back to the tab / phone: catch up straight away
+document.addEventListener('visibilitychange',()=>{if(me&&document.visibilityState==='visible'){loadOrders();loadProducts();loadCustomers();loadHistory();loadStaff();loadNotifs()}});
+
+// ---- notification centre (list + mark as read) ----
+let notifs=[],readSet=new Set(),nfFilter='unread',notifReady=false;
+function timeAgo(t){
+  const m=Math.floor((Date.now()-new Date(t).getTime())/60000);
+  if(m<1)return 'just now';if(m<60)return m+' min ago';
+  const h=Math.floor(m/60);if(h<24)return h+' hr ago';
+  return new Date(t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
+}
+const unreadList=()=>notifs.filter(n=>!readSet.has(String(n.id)));
+async function loadNotifs(){
+  if(!me)return;
+  const [a,b]=await Promise.all([
+    db.from('notifications').select('*').order('at',{ascending:false}).limit(100),
+    db.from('notification_reads').select('notification_id').eq('staff_id',me.id).limit(2000)]);
+  if(a.error||b.error){console.error(a.error||b.error);notifReady=false;renderNotifs();return;}
+  notifs=a.data||[];readSet=new Set((b.data||[]).map(r=>String(r.notification_id)));notifReady=true;renderNotifs();
+}
+function renderNotifs(){
+  const n=unreadList().length;
+  $('bellBdg').textContent=n>99?'99+':n;$('bellBdg').classList.toggle('on',n>0);
+  document.title=(n?'('+n+') ':'')+'PM Staff – Orders & Stock';
+  if(!$('nfmask').classList.contains('on'))return;
+  $('nfChips').innerHTML=[['unread','Unread ('+n+')'],['all','All']].map(([k,l])=>`<button class="chip ${nfFilter===k?'on':''}" data-nf="${k}" type="button">${l}</button>`).join('');
+  $('nfAll').disabled=n===0;
+  if(!notifReady){$('nfList').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>Could not load notifications. Please try again.</div>';return;}
+  const list=nfFilter==='unread'?unreadList():notifs;
+  if(!list.length){$('nfList').innerHTML='<div class="empty"><i class="fas fa-bell-slash"></i>'+(nfFilter==='unread'?'You are all caught up':'No notifications yet')+'</div>';return;}
+  $('nfList').innerHTML=list.map(x=>{
+    const un=!readSet.has(String(x.id));
+    return `<div class="nfi ${un?'un':''}" data-nid="${esc(x.id)}" data-kind="${esc(x.kind)}">
+      <div class="ico"><i class="fas ${x.kind==='order'?'fa-box':'fa-user-plus'}"></i></div>
+      <div class="tx"><div class="tt">${esc(x.title)}</div><div class="bd">${esc(x.body||'')}</div><div class="tm">${esc(timeAgo(x.at))}</div></div>
+      ${un?'<button class="rd" data-read type="button">Mark as read</button>':''}</div>`;
+  }).join('');
+}
+async function markRead(ids){
+  if(!ids.length)return;
+  const {error}=await db.from('notification_reads').upsert(ids.map(id=>({staff_id:me.id,notification_id:id})),{onConflict:'staff_id,notification_id',ignoreDuplicates:true});
+  if(error){console.error(error);toast('Could not mark as read. Please try again');return;}
+  ids.forEach(id=>readSet.add(String(id)));renderNotifs();
+}
+$('bellBtn').addEventListener('click',()=>{$('nfmask').classList.add('on');bellState();loadNotifs().then(renderNotifs);renderNotifs()});
+$('nfClose').addEventListener('click',()=>$('nfmask').classList.remove('on'));
+$('nfChips').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;nfFilter=c.dataset.nf;renderNotifs()});
+$('nfAll').addEventListener('click',()=>markRead(unreadList().map(x=>x.id)));
+$('nfList').addEventListener('click',e=>{
+  const row=e.target.closest('.nfi');if(!row)return;
+  const id=row.dataset.nid;
+  if(e.target.closest('[data-read]')){markRead([id]);return;}
+  // tapping a notification opens the related tab and marks it read
+  markRead([id]);
+  $('nfmask').classList.remove('on');
+  document.querySelector('.tab[data-tab="'+(row.dataset.kind==='order'?'orders':'customers')+'"]').click();
+});
+setInterval(()=>{if($('nfmask').classList.contains('on'))renderNotifs()},60000);
+
+// ---- live updates: any change in the database shows up here by itself ----
+let liveCh=null,ownOrderAt=0;
+const later={};
+function debounce(key,fn){clearTimeout(later[key]);later[key]=setTimeout(fn,350)}
+function stopLive(){if(liveCh){try{db.removeChannel(liveCh)}catch(e){}liveCh=null}}
+function startLive(){
+  stopLive();
+  try{
+    liveCh=db.channel('staff-live')
+      .on('postgres_changes',{event:'*',schema:'public',table:'orders'},pl=>{
+        if(pl.eventType==='INSERT'&&!notifReady&&Date.now()-ownOrderAt>4000){
+          const o=pl.new||{};toast('New order'+(o.customer_name?' from '+o.customer_name:'')+(o.total_amount?' – '+money(o.total_amount):''));
+        }
+        debounce('o',loadOrders);
+      })
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},pl=>{
+        const n=pl.new||{};
+        if(!(n.kind==='order'&&Date.now()-ownOrderAt<4000))toast(n.title+(n.body?' – '+n.body:''));
+        debounce('n',loadNotifs);
+      })
+      .on('postgres_changes',{event:'*',schema:'public',table:'products'},()=>debounce('p',loadProducts))
+      .on('postgres_changes',{event:'*',schema:'public',table:'customers'},()=>debounce('c',loadCustomers))
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'audit_log'},()=>debounce('h',loadHistory))
+      .on('postgres_changes',{event:'*',schema:'public',table:'staff'},()=>debounce('s',loadStaff))
+      .subscribe(st=>{if(st==='CHANNEL_ERROR'||st==='TIMED_OUT')console.error('Live updates:',st)});
+  }catch(e){console.error(e)}
+}
 
 // ---- staff login ----
 let me=null;
 const STAFF_DOMAIN='staff.kcst.com';
-function showLogin(msg){me=null;document.body.classList.add('nolog');$('login').classList.add('on');$('lErr').textContent=msg||'';$('lPass').value='';}
+function showLogin(msg){me=null;stopLive();document.body.classList.add('nolog');$('login').classList.add('on');$('lErr').textContent=msg||'';$('lPass').value='';}
 async function enterApp(user){
   const {data,error}=await db.from('staff').select('*').eq('id',user.id).maybeSingle();
   if(error)console.error(error);
@@ -620,6 +850,7 @@ async function enterApp(user){
   me=data;
   $('login').classList.remove('on');document.body.classList.remove('nolog');
   $('whoLbl').textContent='Signed in: '+(me.name||me.username);
+  startLive();
   const isAdm=me.role==='admin';
   $('tabStaff').style.display=isAdm?'':'none';
   $('tabHistory').style.display=isAdm?'':'none';
@@ -641,7 +872,7 @@ $('lBtn').addEventListener('click',doLogin);
 $('lPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
 $('lUser').addEventListener('keydown',e=>{if(e.key==='Enter')$('lPass').focus()});
 $('outBtn').addEventListener('click',async()=>{await db.auth.signOut();showLogin('')});
-db.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){me=null;document.body.classList.add('nolog');$('login').classList.add('on')}});
+db.auth.onAuthStateChange(ev=>{if(ev==='SIGNED_OUT'){me=null;stopLive();document.body.classList.add('nolog');$('login').classList.add('on')}});
 db.auth.getSession().then(({data})=>{if(data.session)enterApp(data.session.user);else showLogin('')});
 
 // ---- new-order notifications (web push) ----
@@ -649,13 +880,13 @@ const VAPID_PUBLIC='BAW5Oj6YObwXB_4XaiMxamC90DRNJ2wKW7Ay3-q82CRZfMEoiWc5Av9ZpBD3
 function b64ToU8(b){const pad='='.repeat((4-b.length%4)%4);const raw=atob((b+pad).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))}
 let swReg=null;
 async function bellState(){
-  if(!swReg||!('PushManager' in window))return;
-  try{const sub=await swReg.pushManager.getSubscription();$('bellBtn').classList.toggle('on',!!sub);$('bellBtn').title=sub?'Notifications on (tap to turn off)':'Turn on order notifications'}catch(e){console.error(e)}
+  if(!swReg||!('PushManager' in window)||!('Notification' in window)){$('pushState').textContent='Not available here (open the page over https)';$('pushBtn').style.display='none';return;}
+  try{const sub=await swReg.pushManager.getSubscription();$('pushState').textContent=sub?'On for this phone':'Off for this phone';$('pushBtn').textContent=sub?'Turn off':'Turn on';$('pushBtn').style.display=''}catch(e){console.error(e)}
 }
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js').then(r=>{swReg=r;return navigator.serviceWorker.ready}).then(r=>{swReg=r;bellState()}).catch(e=>console.error(e));
 }
-$('bellBtn').addEventListener('click',async()=>{
+async function togglePush(){
   if(!swReg||!('PushManager' in window)||!('Notification' in window)){toast('Notifications are not available here. Open the page over https.');return;}
   try{
     const old=await swReg.pushManager.getSubscription();
@@ -672,7 +903,8 @@ $('bellBtn').addEventListener('click',async()=>{
     if(error){console.error(error);await sub.unsubscribe();toast('Could not turn on notifications. Please try again');return;}
     bellState();toast('Order notifications are on');
   }catch(e){console.error(e);toast('Could not turn on notifications. Please try again')}
-});
+}
+$('pushBtn').addEventListener('click',togglePush);
 
 // ---- history (who approved / edited what) ----
 let logs=[],hfilter='All';
