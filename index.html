@@ -218,7 +218,7 @@ body.nolog{overflow:hidden}
     <div class="list" id="products"><div class="empty"><i class="fas fa-spinner fa-spin"></i>Loading products...</div></div>
   </section>
   <section id="paneCustomers" style="display:none">
-    <div class="addbar"><span class="cnt" id="custCnt"></span><button class="addbtn" id="addCustBtn" type="button"><i class="fas fa-user-plus"></i> Add user</button></div>
+    <div class="addbar"><span class="cnt" id="custCnt"></span><span style="display:flex;gap:8px"><button class="addbtn ghost" id="fromOrdBtn" type="button"><i class="fas fa-box"></i> From orders</button><button class="addbtn" id="addCustBtn" type="button"><i class="fas fa-user-plus"></i> Add user</button></span></div>
     <div class="tools"><input id="cq" type="search" placeholder="Search name, email, mobile or address"></div>
     <div class="list" id="customers"><div class="empty"><i class="fas fa-spinner fa-spin"></i>Loading users...</div></div>
   </section>
@@ -373,6 +373,8 @@ function renderChips(){
   }).join('');
 }
 
+function last10(p){return String(p||'').replace(/\D/g,'').slice(-10)}
+function hasCustPhone(p){const n=last10(p);return n.length===10&&typeof customers!=='undefined'&&customers.some(c=>last10(c.phone)===n)}
 function renderOrders(){
   renderChips();
   const q=$('q').value.trim().toLowerCase();
@@ -407,6 +409,7 @@ function renderOrders(){
         <a class="call" href="tel:+${ph}"><i class="fas fa-phone"></i> Call</a>
         <a class="wa" href="https://wa.me/${ph}?text=${msg}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> WhatsApp</a>
         <button type="button" data-oedit data-oid2="${esc(o.id)}"><i class="fas fa-pen"></i> Edit</button>
+        ${(me&&me.role==='admin')?(hasCustPhone(o.customer_phone)?`<button type="button" disabled style="opacity:.6;cursor:default"><i class="fas fa-user-check"></i> User exists</button>`:`<button type="button" data-oadduser data-oid3="${esc(o.id)}"><i class="fas fa-user-plus"></i> Add user</button>`):''}
         <select data-oid="${esc(o.id)}">${STATUSES.map(x=>`<option ${x===st?'selected':''}>${x}</option>`).join('')}</select>
       </div></div>`;
   }).join('');
@@ -483,6 +486,39 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
   Object.keys(PANES).forEach(k=>{$(PANES[k]).style.display=t.dataset.tab===k?'':'none'});
   if(t.dataset.tab==='history')loadHistory();
 }));
+
+// ---- create a user (no login) from a past guest order ----
+function guestRow(o){
+  const name=String(o.customer_name||'').trim(),phone=last10(o.customer_phone);
+  if(!name||!/^[6-9]\d{9}$/.test(phone))return null;
+  return {id:(crypto.randomUUID?crypto.randomUUID():null),name,phone,address:String(o.customer_address||'').trim()||null};
+}
+$('orders').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-oadduser]');if(!b)return;
+  const o=orders.find(x=>String(x.id)===String(b.dataset.oid3));if(!o)return;
+  if(!custReady){toast('Could not load users. Please refresh');return;}
+  const r=guestRow(o);
+  if(!r){toast('This order needs a name and a valid 10 digit phone');return;}
+  b.disabled=true;
+  const {error}=await db.from('customers').insert([r]);
+  if(error){console.error(error);b.disabled=false;toast('Could not add the user. Please try again');return;}
+  toast('User added (no login yet)');loadCustomers();
+});
+// bulk: every past order whose phone has no user yet
+$('fromOrdBtn').addEventListener('click',async()=>{
+  if(!custReady){toast('Could not load users. Please refresh');return;}
+  const seen=new Set(customers.map(c=>last10(c.phone))),rows=[];
+  orders.slice().sort((x,y)=>new Date(y.created_at||0)-new Date(x.created_at||0)).forEach(o=>{
+    const r=guestRow(o);if(!r||seen.has(r.phone))return;seen.add(r.phone);rows.push(r);
+  });
+  if(!rows.length){toast('No new users found in orders');return;}
+  if(!confirm('Create '+rows.length+' user(s) from past orders? They will have no login until you set an email and password.'))return;
+  const b=$('fromOrdBtn');b.disabled=true;
+  const {error}=await db.from('customers').insert(rows);
+  b.disabled=false;
+  if(error){console.error(error);toast('Could not add the users. Please try again');return;}
+  toast(rows.length+' user(s) added');loadCustomers();
+});
 
 // ---- edit an order's customer details / address ----
 let editingOrder=null;
@@ -642,7 +678,7 @@ async function loadCustomers(){
     $('customers').innerHTML='<div class="empty"><i class="fas fa-triangle-exclamation"></i>Could not load users. Please refresh and try again.</div>';
     $('custCnt').textContent='';return;
   }
-  custReady=true;customers=data||[];renderCustomers();
+  custReady=true;customers=data||[];renderCustomers();renderOrders();
 }
 function renderCustomers(){
   if(!custReady)return;
@@ -854,7 +890,7 @@ async function enterApp(user){
   const isAdm=me.role==='admin';
   $('tabStaff').style.display=isAdm?'':'none';
   $('tabHistory').style.display=isAdm?'':'none';
-  $('addCustBtn').style.display=isAdm?'':'none';
+  $('addCustBtn').style.display=isAdm?'':'none';$('fromOrdBtn').style.display=isAdm?'':'none';
   // a non-admin who was on an admin tab goes back to Orders
   document.querySelector('.tab[data-tab="orders"]').click();
   refresh();
