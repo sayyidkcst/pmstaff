@@ -199,7 +199,7 @@ body.nolog{overflow:hidden}
   <div class="tabs">
     <button class="tab on" data-tab="orders" type="button"><i class="fas fa-box"></i> Orders</button>
     <button class="tab" data-tab="products" type="button"><i class="fas fa-bottle-droplet"></i> Products</button>
-    <button class="tab" data-tab="customers" type="button"><i class="fas fa-users"></i> Users</button>
+    <button class="tab" data-tab="customers" id="tabCust" type="button"><i class="fas fa-users"></i> Users</button>
     <button class="tab" data-tab="history" id="tabHistory" type="button" style="display:none"><i class="fas fa-clock-rotate-left"></i> History</button>
     <button class="tab" data-tab="staff" id="tabStaff" type="button" style="display:none"><i class="fas fa-user-shield"></i> Staff</button>
   </div>
@@ -636,6 +636,7 @@ $('pSave').addEventListener('click',async()=>{
 // ---- users (customers table) ----
 let customers=[],editingCust=null,custReady=true;
 async function loadCustomers(){
+  if(!me||me.role!=='admin'){customers=[];return;}
   const {data,error}=await db.from('customers').select('*').order('created_at',{ascending:false}).limit(500);
   if(error){
     console.error(error);custReady=false;customers=[];
@@ -770,7 +771,7 @@ async function loadNotifs(){
     db.from('notifications').select('*').order('at',{ascending:false}).limit(100),
     db.from('notification_reads').select('notification_id').eq('staff_id',me.id).limit(2000)]);
   if(a.error||b.error){console.error(a.error||b.error);notifReady=false;renderNotifs();return;}
-  notifs=a.data||[];readSet=new Set((b.data||[]).map(r=>String(r.notification_id)));notifReady=true;renderNotifs();
+  notifs=(a.data||[]).filter(n=>n.kind==='order');readSet=new Set((b.data||[]).map(r=>String(r.notification_id)));notifReady=true;renderNotifs();
 }
 function renderNotifs(){
   const n=unreadList().length;
@@ -785,7 +786,7 @@ function renderNotifs(){
   $('nfList').innerHTML=list.map(x=>{
     const un=!readSet.has(String(x.id));
     return `<div class="nfi ${un?'un':''}" data-nid="${esc(x.id)}" data-kind="${esc(x.kind)}">
-      <div class="ico"><i class="fas ${x.kind==='order'?'fa-box':'fa-user-plus'}"></i></div>
+      <div class="ico"><i class="fas fa-box"></i></div>
       <div class="tx"><div class="tt">${esc(x.title)}</div><div class="bd">${esc(x.body||'')}</div><div class="tm">${esc(timeAgo(x.at))}</div></div>
       ${un?'<button class="rd" data-read type="button">Mark as read</button>':''}</div>`;
   }).join('');
@@ -807,7 +808,7 @@ $('nfList').addEventListener('click',e=>{
   // tapping a notification opens the related tab and marks it read
   markRead([id]);
   $('nfmask').classList.remove('on');
-  document.querySelector('.tab[data-tab="'+(row.dataset.kind==='order'?'orders':'customers')+'"]').click();
+  document.querySelector('.tab[data-tab="orders"]').click();
 });
 setInterval(()=>{if($('nfmask').classList.contains('on'))renderNotifs()},60000);
 
@@ -828,7 +829,7 @@ function startLive(){
       })
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications'},pl=>{
         const n=pl.new||{};
-        if(!(n.kind==='order'&&Date.now()-ownOrderAt<4000))toast(n.title+(n.body?' – '+n.body:''));
+        if(n.kind==='order'&&Date.now()-ownOrderAt>=4000)toast(n.title+(n.body?' – '+n.body:''));
         debounce('n',loadNotifs);
       })
       .on('postgres_changes',{event:'*',schema:'public',table:'products'},()=>debounce('p',loadProducts))
@@ -854,6 +855,7 @@ async function enterApp(user){
   const isAdm=me.role==='admin';
   $('tabStaff').style.display=isAdm?'':'none';
   $('tabHistory').style.display=isAdm?'':'none';
+  $('tabCust').style.display=isAdm?'':'none';
   $('addCustBtn').style.display=isAdm?'':'none';
   // a non-admin who was on an admin tab goes back to Orders
   document.querySelector('.tab[data-tab="orders"]').click();
