@@ -182,6 +182,7 @@ body.nolog{overflow:hidden}
   <div class="hbtns">
     <button class="rbtn" id="refreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
     <button class="rbtn sq" id="bellBtn" type="button" title="Notifications"><i class="fas fa-bell"></i><span class="bdg" id="bellBdg">0</span></button>
+    <button class="rbtn sq" id="nameBtn" type="button" title="Change my name"><i class="fas fa-user-pen"></i></button>
     <button class="rbtn sq" id="pwBtn" type="button" title="Change my password"><i class="fas fa-key"></i></button>
     <button class="rbtn sq" id="outBtn" type="button" title="Logout"><i class="fas fa-right-from-bracket"></i></button>
   </div>
@@ -963,6 +964,7 @@ function renderStaff(){
   $('stafflist').innerHTML=staffRows.map(r=>`<div class="stf" data-sid="${esc(r.id)}">
     <div class="top" style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><b>${esc(r.name||r.username)}</b><div style="font-size:13px;color:var(--mute)">@${esc(r.username)} · ${r.role==='admin'?'Admin':'Staff'}</div></div>
       <span class="pill ${r.active?'ap':'pc'}">${r.active?'Active':'Disabled'}</span></div>
+    <div class="row"><button data-sname type="button"><i class="fas fa-pen"></i> Change name</button></div>
     ${r.id===me.id?'':`<div class="row"><button data-spw type="button"><i class="fas fa-key"></i> Reset password</button><button data-sact type="button" style="${r.active?'color:var(--red);border-color:#f3b3bd':''}">${r.active?'Disable':'Enable'}</button></div>`}
   </div>`).join('');
 }
@@ -976,6 +978,18 @@ $('stafflist').addEventListener('click',async e=>{
     r.active=!r.active;toast(r.active?'Staff enabled':'Staff disabled');renderStaff();
   }
   if(e.target.closest('[data-spw]'))openPw(r);
+  if(e.target.closest('[data-sname]')){
+    const v=prompt('New name for @'+r.username,r.name||'');
+    if(v===null)return;
+    const name=v.trim();
+    if(!name){toast('Enter a name');return;}
+    if(name===(r.name||''))return;
+    const {error}=await db.from('staff').update({name}).eq('id',r.id);
+    if(error){console.error(error);toast('Could not change the name. Please try again');return;}
+    r.name=name;
+    if(r.id===me.id){me.name=name;$('whoLbl').textContent='Signed in: '+name}
+    toast('Name changed');renderStaff();loadHistory();
+  }
 });
 $('addStfBtn').addEventListener('click',()=>{['sUser','sName','sPass'].forEach(i=>$(i).value='');$('sRole').value='staff';$('smask').classList.add('on')});
 $('sCancel').addEventListener('click',()=>$('smask').classList.remove('on'));
@@ -1003,6 +1017,19 @@ function openPw(target){
   $('wPass').value='';$('wPass2').value='';$('wmask').classList.add('on');
 }
 $('pwBtn').addEventListener('click',()=>openPw(null));
+$('nameBtn').addEventListener('click',async()=>{
+  if(!me)return;
+  const v=prompt('Your name',me.name||'');
+  if(v===null)return;
+  const name=v.trim();
+  if(!name){toast('Enter a name');return;}
+  if(name===(me.name||''))return;
+  const {error}=await db.from('staff').update({name}).eq('id',me.id);
+  if(error){console.error(error);toast('Could not change the name. Please try again');return;}
+  me.name=name;$('whoLbl').textContent='Signed in: '+name;
+  const r=staffRows.find(x=>x.id===me.id);if(r){r.name=name;renderStaff()}
+  toast('Name changed');
+});
 $('wCancel').addEventListener('click',()=>$('wmask').classList.remove('on'));
 $('wmask').addEventListener('click',e=>{if(e.target===$('wmask'))$('wmask').classList.remove('on')});
 $('wSave').addEventListener('click',async()=>{
