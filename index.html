@@ -182,8 +182,7 @@ body.nolog{overflow:hidden}
   <div class="hbtns">
     <button class="rbtn" id="refreshBtn" type="button"><i class="fas fa-rotate"></i> Refresh</button>
     <button class="rbtn sq" id="bellBtn" type="button" title="Notifications"><i class="fas fa-bell"></i><span class="bdg" id="bellBdg">0</span></button>
-    <button class="rbtn sq" id="nameBtn" type="button" title="Change my name"><i class="fas fa-user-pen"></i></button>
-    <button class="rbtn sq" id="pwBtn" type="button" title="Change my password"><i class="fas fa-key"></i></button>
+    <button class="rbtn" id="pwBtn" type="button" title="My account (name & password)" style="max-width:140px"><i class="fas fa-circle-user"></i><span id="meName" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Account</span></button>
     <button class="rbtn sq" id="outBtn" type="button" title="Logout"><i class="fas fa-right-from-bracket"></i></button>
   </div>
 </div></header>
@@ -249,10 +248,11 @@ body.nolog{overflow:hidden}
 
 <!-- password modal -->
 <div class="mask" id="wmask"><div class="modal">
-  <h3 id="wTitle">Change password</h3>
-  <div class="fld"><label>New password</label><input id="wPass" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
+  <h3 id="wTitle">My account</h3>
+  <div class="fld" id="wNameFld"><label>My name</label><input id="wName"></div>
+  <div class="fld"><label id="wPassLbl">New password</label><input id="wPass" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
   <div class="fld"><label>Confirm password</label><input id="wPass2" type="password" autocomplete="new-password"></div>
-  <div class="mb"><button type="button" id="wCancel">Cancel</button><button type="button" class="pri" id="wSave">Save password</button></div>
+  <div class="mb"><button type="button" id="wCancel">Cancel</button><button type="button" class="pri" id="wSave">Save</button></div>
 </div></div>
 
 <!-- product modal -->
@@ -851,7 +851,7 @@ async function enterApp(user){
   if(error||!data||!data.active){await db.auth.signOut();showLogin(error?'Could not sign in. Please try again.':'This account does not have staff access.');return;}
   me=data;
   $('login').classList.remove('on');document.body.classList.remove('nolog');
-  $('whoLbl').textContent='Signed in: '+(me.name||me.username);
+  $('whoLbl').textContent='Signed in: '+(me.name||me.username);$('meName').textContent=me.name||me.username;
   startLive();
   const isAdm=me.role==='admin';
   $('tabStaff').style.display=isAdm?'':'none';
@@ -1009,33 +1009,28 @@ $('sSave').addEventListener('click',async()=>{
   }finally{b.disabled=false}
 });
 
-// ---- password modal (own password, or admin resetting a staff member) ----
+// ---- my account modal (own name + password) / admin resetting a staff member's password ----
 let pwTarget=null;
 function openPw(target){
   pwTarget=target||null;
-  $('wTitle').textContent=target?'Reset password: '+(target.name||target.username):'Change my password';
+  $('wTitle').textContent=target?'Reset password: '+(target.name||target.username):'My account';
+  $('wNameFld').style.display=target?'none':'';
+  $('wPassLbl').textContent=target?'New password':'New password (leave empty to keep)';
+  $('wName').value=target?'':(me.name||'');
   $('wPass').value='';$('wPass2').value='';$('wmask').classList.add('on');
 }
-$('pwBtn').addEventListener('click',()=>openPw(null));
-$('nameBtn').addEventListener('click',async()=>{
-  if(!me)return;
-  const v=prompt('Your name',me.name||'');
-  if(v===null)return;
-  const name=v.trim();
-  if(!name){toast('Enter a name');return;}
-  if(name===(me.name||''))return;
-  const {error}=await db.from('staff').update({name}).eq('id',me.id);
-  if(error){console.error(error);toast('Could not change the name. Please try again');return;}
-  me.name=name;$('whoLbl').textContent='Signed in: '+name;
-  const r=staffRows.find(x=>x.id===me.id);if(r){r.name=name;renderStaff()}
-  toast('Name changed');
-});
+$('pwBtn').addEventListener('click',()=>{if(me)openPw(null)});
 $('wCancel').addEventListener('click',()=>$('wmask').classList.remove('on'));
 $('wmask').addEventListener('click',e=>{if(e.target===$('wmask'))$('wmask').classList.remove('on')});
 $('wSave').addEventListener('click',async()=>{
   const a=$('wPass').value,b2=$('wPass2').value;
-  if(a.length<6){toast('Password must be at least 6 characters');return;}
-  if(a!==b2){toast('Passwords do not match');return;}
+  const wantPw=pwTarget?true:a.length>0||b2.length>0;
+  const newName=pwTarget?'':$('wName').value.trim();
+  if(!pwTarget&&!newName){toast('Enter your name');return;}
+  if(wantPw){
+    if(a.length<6){toast('Password must be at least 6 characters');return;}
+    if(a!==b2){toast('Passwords do not match');return;}
+  }
   const btn=$('wSave');btn.disabled=true;
   try{
     if(pwTarget){
@@ -1043,9 +1038,20 @@ $('wSave').addEventListener('click',async()=>{
       if(error){console.error(error);toast('Could not reset the password. Please try again');return;}
       toast('Password reset');loadHistory();
     }else{
-      const {error}=await db.auth.updateUser({password:a});
-      if(error){console.error(error);toast('Could not change the password. Please try again');return;}
-      toast('Password changed');
+      const msgs=[];
+      if(newName!==(me.name||'')){
+        const {error}=await db.from('staff').update({name:newName}).eq('id',me.id);
+        if(error){console.error(error);toast('Could not change the name. Please try again');return;}
+        me.name=newName;$('whoLbl').textContent='Signed in: '+newName;$('meName').textContent=newName;
+        const r=staffRows.find(x=>x.id===me.id);if(r){r.name=newName;renderStaff()}
+        msgs.push('Name changed');
+      }
+      if(wantPw){
+        const {error}=await db.auth.updateUser({password:a});
+        if(error){console.error(error);toast((msgs.length?'Name saved, but the':'Could not change the')+' password could not be changed. Please try again');return;}
+        msgs.push('Password changed');
+      }
+      toast(msgs.length?msgs.join(' & '):'Nothing to change');
     }
     $('wmask').classList.remove('on');
   }finally{btn.disabled=false}
